@@ -1,0 +1,10 @@
+canvas {
+  border: 1px solid black;
+}
+
+.pixel-art {
+  /*Esta porra para ficar com o mesmo aspect ratio*/
+ image-rendering: pixelated;
+}
+
+

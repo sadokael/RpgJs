@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
+  <link rel="stylesheet" href="logica.js">
+  <link rel="stylesheet" href="Paleta.css"> 
+  <title>Document</title>
+</head>
+<body>
+  <!-- Area do jogo -->
+ <canvas class="pixel-art" width="400" height="200"></canvas>
+
+<script>
+
+//************************************************************
+//
+//				~Constantes~
+// 
+//************************************************************
+//scale para a pixel-art ("pixel-size")
+const scale = 1;
+
+//largura/altura da sprite
+const width = 16; 
+const height = 18;
+
+//largura/altura scaled
+const scaledWidth = scale * width;
+const scaledHeight = scale * height;
+
+//pixeis que a sprite viaja
+const moveSpeed = 1;
+
+//ciclo com a height na spriteSheet
+const cycleLoop = [0, 1, 0, 2];
+
+//quantidade de frames por draw
+const frameLimit = 12;
+
+//direções
+const directions = {
+   up: 1,
+   down: 0,
+   left: 2,
+   right: 3,
+}
+
+
+
+//************************************************************
+//
+//				~Variáveis~
+// 
+//************************************************************
+//Posição da sprite em relação ao canvas
+let positionX = 0;
+let positionY = 0;
+
+let currentLoopIndex = 0;
+let frameCount = 0;
+
+let currentDirection = directions.down;
+
+let keyPresses = {};
+
+
+let canvas = document.querySelector('canvas');
+let ctx = canvas.getContext('2d');
+
+let img = new Image();
+
+
+//************************************************************
+//
+//				~Funções de draw~
+// 
+//************************************************************
+function loadImage(){
+	img.src = 'SpriteSheet/test.png';
+	//func onload corre at start, começa a animação
+	img.onload = function() {
+  		window.requestAnimationFrame(step);
+	};
+}
+
+//************************************************************
+//drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+//				   s= source 				d= destination(canvas)
+//************************************************************
+
+//func para lidar com a matemática
+function drawFrame(frameX, frameY, canvasX, canvasY){
+		ctx.drawImage(img,
+						frameX * width, frameY * height, width, height,
+						canvasX, canvasY, scaledWidth, scaledHeight);
+}
+
+
+//************************************************************
+//
+//				~kick-start~
+// 
+//************************************************************
+
+loadImage();
+
+//************************************************************
+//
+//				Função main loop - step
+// 
+//************************************************************
+function step(){
+	ctx.clearRect(0,0, canvas.width, canvas.height);
+
+	//hasMoved é re-declarada a false em cada instância step
+	let hasMoved = false;
+			
+	if (keyPresses.w) {
+    	moveCharacter(0, -moveSpeed, directions.up);
+    	hasMoved = true;
+ 	} else if (keyPresses.s) {
+    	moveCharacter(0, moveSpeed, directions.down);
+    	hasMoved = true;
+  	}
+
+  	if (keyPresses.a) {
+    	moveCharacter(-moveSpeed, 0, directions.left);
+    	hasMoved = true;
+  	} else if (keyPresses.d) {
+    	moveCharacter(moveSpeed, 0, directions.right);
+    	hasMoved = true;
+  	}
+
+	if(hasMoved){
+		frameCount++;
+		if(frameCount >= frameLimit){
+			frameCount = 0;
+			currentLoopIndex++;
+			if(currentLoopIndex >= cycleLoop.length){
+				currentLoopIndex = 0;
+			}
+		}
+	}
+
+	//char mantém idle stance quando pára de se mexer
+	if(!hasMoved){
+		currentLoopIndex = 0;
+	}
+	drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY);
+
+	//recursion para o jogo andar
+	window.requestAnimationFrame(step); 
+}
+//************************************************************
+//
+//				Função de movimento (deltas)
+// 
+//************************************************************
+function moveCharacter(deltaX, deltaY, direction) {
+//posX/posY == canto topleft da char
+//minimo positionX é 0(esquerda), máximo é a largura da char+movespeed(delta)+largura do canvas
+
+  if(positionX + deltaX > 0 && positionX+scaledWidth+deltaX< canvas.width){
+  	positionX += deltaX;
+  }
+  
+  if(positionY + deltaY > 0 && positionY+ scaledHeight+ deltaY< canvas.height){
+  	positionY += deltaY;
+  }
+  
+  currentDirection = direction;
+}
+//************************************************************
+//
+//				Funções keypress
+// 
+//************************************************************
+
+window.addEventListener('keydown', keyDownListener, false);
+function keyDownListener(e){
+	keyPresses[e.key] = true;
+}
+
+window.addEventListener('keyup', keyUpListener, false);
+function keyUpListener(e){
+	keyPresses[e.key] = false;
+}
+
+//************************************************************
+//
+//				Fim do script
+// 
+//************************************************************
+
+
+//************************************************************
+//
+//				área temp
+// 
+//************************************************************
+//************************************************************
+//
+//				no-scroll map:
+// 
+//************************************************************
+
+/*
+var map = {
+    cols: 8,
+    rows: 8,
+    tsize: 64,
+    tiles: [
+        1, 3, 3, 3, 1, 1, 3, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 2, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 2, 1, 1, 1, 1,
+        1, 1, 1, 1, 2, 1, 1, 1,
+        1, 1, 1, 1, 2, 1, 1, 1,
+        1, 1, 1, 1, 2, 1, 1, 1
+    ],
+    getTile: function (col, row) {
+        return this.tiles[row * map.cols + col];
+    }
+};
+
+Game.load = function () {
+    return [
+        Loader.loadImage('tiles', '../assets/tiles.png')
+    ];
+};
+
+Game.init = function () {
+    this.tileAtlas = Loader.getImage('tiles');
+};
+
+Game.update = function (delta) {
+};
+
+Game.render = function () {
+    for (var c = 0; c < map.cols; c++) {
+        for (var r = 0; r < map.rows; r++) {
+            var tile = map.getTile(c, r);
+            if (tile !== 0) { // 0 => empty tile
+                this.ctx.drawImage(
+                    this.tileAtlas, // image
+                    (tile - 1) * map.tsize, // source x
+                    0, // source y
+                    map.tsize, // source width
+                    map.tsize, // source height
+                    c * map.tsize,  // target x
+                    r * map.tsize, // target y
+                    map.tsize, // target width
+                    map.tsize // target height
+                );
+            }
+        }
+    }
+};
+*/
+</script>
+
+
+</body>
+</html>
+
