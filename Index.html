@@ -9,7 +9,8 @@
 </head>
 <body>
   <!-- Area do jogo -->
- <canvas class="pixel-art" width="400" height="200"></canvas>
+ <canvas class="pixel-art" width="500" height="300">
+ </canvas>
 
 <script>
 
@@ -22,8 +23,8 @@
 const scale = 1;
 
 //largura/altura da sprite
-const width = 16; 
-const height = 18;
+const width = 32; 
+const height = 32;
 
 //largura/altura scaled
 const scaledWidth = scale * width;
@@ -33,17 +34,24 @@ const scaledHeight = scale * height;
 const moveSpeed = 1;
 
 //ciclo com a height na spriteSheet
-const cycleLoop = [0, 1, 0, 2];
+const cycleLoop = [0, 1, 2, 3];
 
 //quantidade de frames por draw
 const frameLimit = 12;
 
 //direções
 const directions = {
-   up: 1,
+   up: 2,
    down: 0,
-   left: 2,
-   right: 3,
+   left: 3,
+   right: 1,
+}
+const passageParams = {
+	posX: 0,
+	posY: 1,
+	passWidth: 2,
+	passHeight: 3,
+	connectsTo: 4,
 }
 
 
@@ -64,9 +72,21 @@ let currentDirection = directions.down;
 
 let keyPresses = {};
 
+let map = new Image();
+map.src = 'SpriteSheet/testmap.png';
+
+let mapId = 0;
+let mapPassages ={
+	
+};
+setMapPassages(0);
 
 let canvas = document.querySelector('canvas');
 let ctx = canvas.getContext('2d');
+
+map.onload = function(){
+	fillCanvas(map);
+}
 
 let img = new Image();
 
@@ -76,14 +96,60 @@ let img = new Image();
 //				~Funções de draw~
 // 
 //************************************************************
+function fillCanvas(map){
+	
+	canvas.width = map.width;
+	canvas.height = map.height;
+
+	ctx.drawImage(map,0,0);
+}
 function loadImage(){
-	img.src = 'SpriteSheet/test.png';
+	img.src = 'SpriteSheet/teste2.png';
 	//func onload corre at start, começa a animação
 	img.onload = function() {
   		window.requestAnimationFrame(step);
 	};
 }
 
+
+function setMapPassages(mapId){
+	
+	switch(mapId)
+	{
+		//mapPassages array per passage = (posX,posY,width,height,connectsTO,new posX, new posY)
+		case 0:
+
+			mapPassages.passage1 = [105,81,30,30,1,0,0];
+			mapPassages.passage2 = [15,81,30,30,1,100,100];
+			break;
+		case 1:
+			mapPassages.passage1 = [160,81,30,30,0,50,50];
+			mapPassages.passage2 = [];
+			break;
+	}
+}
+
+function setMapSrc(mapId){
+	
+	switch(mapId)
+	{
+		case 0:
+			map.src = 'SpriteSheet/testmap.png';
+			break;
+		case 1:
+			map.src = 'SpriteSheet/testmap2.png';
+			break;
+
+	}
+	
+}
+
+function setMapId(n){
+	mapId = n;
+	setMapSrc(n);
+	setMapPassages(n);
+	//fillCanvas();
+}
 //************************************************************
 //drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
 //				   s= source 				d= destination(canvas)
@@ -91,9 +157,11 @@ function loadImage(){
 
 //func para lidar com a matemática
 function drawFrame(frameX, frameY, canvasX, canvasY){
+		ctx.drawImage(map,0,0);
 		ctx.drawImage(img,
 						frameX * width, frameY * height, width, height,
 						canvasX, canvasY, scaledWidth, scaledHeight);
+
 }
 
 
@@ -104,6 +172,12 @@ function drawFrame(frameX, frameY, canvasX, canvasY){
 //************************************************************
 
 loadImage();
+
+//************************************************************
+//
+//				TODO:: Func mapLoad, obj map com coords próprias, snapgrid com essa coords, 
+// 
+//************************************************************
 
 //************************************************************
 //
@@ -167,9 +241,31 @@ function moveCharacter(deltaX, deltaY, direction) {
   
   if(positionY + deltaY > 0 && positionY+ scaledHeight+ deltaY< canvas.height){
   	positionY += deltaY;
+  //	mapBounds();
   }
   
+  checkDoor();
   currentDirection = direction;
+}
+
+function checkDoor(){
+
+	let keys = Object.keys(mapPassages);
+	
+
+	keys.forEach((key, index) =>{
+		let [posX, posY, passWidth, passHeight, connectsTo, newPosX, newPosY] = mapPassages[key];
+
+		if(positionX > posX && positionX < posX+passWidth &&
+			positionY > posY && positionY< posY+passHeight){
+  		
+  		positionX = newPosX;
+  		positionY = newPosY;
+  		setMapId(connectsTo);
+
+  		
+		}
+	});		
 }
 //************************************************************
 //
@@ -199,6 +295,19 @@ function keyUpListener(e){
 //				área temp
 // 
 //************************************************************
+/*
+function mapBounds(){
+	
+		mapChange();
+		positionX = 0;
+		positionY = 0;
+	
+}
+
+function mapChange(){
+	map.src = 'SpriteSheet/testmap2.png';
+}
+*/
 //************************************************************
 //
 //				no-scroll map:

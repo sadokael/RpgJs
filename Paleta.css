@@ -6,5 +6,17 @@ canvas {
   /*Esta porra para ficar com o mesmo aspect ratio*/
  image-rendering: pixelated;
 }
+/*
+let map = new Image();	
+
+map.onload = function(){
+	map.src = 'SpriteSheet/testmap.png';
+};
 
 
+
+
+
+
+
+}*/
