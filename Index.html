@@ -23,18 +23,23 @@
 const scale = 1;
 
 //largura/altura da sprite
-const width = 32; 
-const height = 32;
+//final = w: 38 h: 32x2
+const width = 38; 
+const height = 72;
+
+//largura/altura dos tiles
+const tileWidth = 38;
+const tileHeight = 38;
 
 //largura/altura scaled
 const scaledWidth = scale * width;
 const scaledHeight = scale * height;
 
 //pixeis que a sprite viaja
-const moveSpeed = 1;
+const moveSpeed = 2;
 
 //ciclo com a height na spriteSheet
-const cycleLoop = [0, 1, 2, 3];
+const cycleLoop = [0, 0, 0, 0];
 
 //quantidade de frames por draw
 const frameLimit = 12;
@@ -55,7 +60,7 @@ const passageParams = {
 }
 
 
-
+let debugCount=0;
 //************************************************************
 //
 //				~Variáveis~
@@ -74,19 +79,25 @@ let hasInteracted = false;
 
 let keyPresses = {};
 
+
+
+//************************************************************
+//
+//				~Define e init do mapa~
+// 
+//************************************************************
 let map = new Image();
-map.src = 'SpriteSheet/testmap.png';
+map.src = 'SpriteSheet/testTiledMap.png';
 
-let mapId = 0;
-let mapPassages ={
-	
-};
-setMapPassages(0);
+let mapId = 2;
+let mapBounds ={};
+setMapBounds(2);
 
-let mapInteracts ={
+let mapPassages ={};
+setMapPassages(2);
 
-};
-setMapInteracts(0);
+let mapInteracts ={};
+setMapInteracts(2);
 
 let canvas = document.querySelector('canvas');
 let ctx = canvas.getContext('2d');
@@ -111,7 +122,7 @@ function fillCanvas(map){
 	ctx.drawImage(map,0,0);
 }
 function loadImage(){
-	img.src = 'SpriteSheet/teste2.png';
+	img.src = 'SpriteSheet/hero1.png';
 	//func onload corre at start, começa a animação
 	img.onload = function() {
   		window.requestAnimationFrame(step);
@@ -133,6 +144,9 @@ function setMapPassages(mapId){
 			mapPassages.passage1 = [160,81,30,30,0,50,50];
 			mapPassages.passage2 = [];
 			break;
+		case 2:
+			mapPassages.passage1 = [];
+			mapPassages.passage2 = [];
 	}
 }
 
@@ -146,9 +160,10 @@ function setMapSrc(mapId){
 		case 1:
 			map.src = 'SpriteSheet/testmap2.png';
 			break;
-
+		case 2:
+			map.src = 'SpriteSheet/testTiledMap.png';
+			break;
 	}
-	
 }
 
 function setMapInteracts(mapId){
@@ -158,8 +173,31 @@ function setMapInteracts(mapId){
 		//mapInteracts array per interact = (posX,posY,width,height,interactsWITH)
 		case 0:
 			mapInteracts.interact1 = [-10,-10,20,60,0];
+			mapInteracts.interact2 = [170,80,20,60,0];
 			break;
 		case 1:
+			break;
+		case 2:
+			mapInteracts.interact1 = [tileWidth*4, tileHeight*3, tileWidth, tileHeight,0];
+			mapInteracts.interact1 = [tileWidth*6, tileHeight*3, tileWidth, tileHeight,0];
+			mapInteracts.interact1 = [tileWidth*8, tileHeight*3, tileWidth, tileHeight,0];
+			break;
+	}
+}
+
+function setMapBounds(mapId){
+
+	switch(mapId)
+	{
+		case 0:
+			break;
+		case 1:
+			break;
+		case 2:
+			mapBounds.bound1 = [tileWidth*1.5, tileHeight*1.5, tileWidth*7, tileHeight*7];
+			mapBounds.bound2 = [tileWidth*4, tileHeight*3,tileWidth,tileHeight];
+			mapBounds.bound2 = [tileWidth*6, tileHeight*3,tileWidth,tileHeight];
+			mapBounds.bound2 = [tileWidth*8, tileHeight*3,tileWidth,tileHeight];
 			break;
 	}
 }
@@ -227,6 +265,19 @@ function step(){
     	hasMoved = true;
   	}
 
+  	if(keyPresses.j){
+		if(hasInteracted == false)
+		{
+			checkInteract();
+			hasInteracted = true;
+		}
+		else
+		{
+			hasInteracted = false;
+		}
+	}
+
+
 	if(hasMoved){
 		frameCount++;
 		if(frameCount >= frameLimit){
@@ -238,20 +289,6 @@ function step(){
 		}
 	}
 
-	//interação com map
-	if(keyPresses.j){
-		if(hasInteracted == false)
-		{
-			checkInteract();
-			hasInteracted = true;
-			console.log("entrouAqui");
-		}
-		else
-		{
-			hasInteracted = false;
-			console.log("entrouAli");
-		}
-	}
 	
 
 	//char mantém idle stance quando pára de se mexer
@@ -259,7 +296,7 @@ function step(){
 		currentLoopIndex = 0;
 		
 	}
-	drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY);
+	drawFrame(cycleLoop[currentLoopIndex], 0, positionX, positionY);
 
 	//recursion para o jogo andar
 	window.requestAnimationFrame(step); 
@@ -274,12 +311,18 @@ function moveCharacter(deltaX, deltaY, direction) {
 //minimo positionX é 0(esquerda), máximo é a largura da char+movespeed(delta)+largura do canvas
 
   if(positionX + deltaX > 0 && positionX+scaledWidth+deltaX< canvas.width){
-  	positionX += deltaX;
+  	if(checkColision(deltaX, deltaY))
+  	{
+  		positionX += deltaX;
+  	}
+  	
   }
   
   if(positionY + deltaY > 0 && positionY+ scaledHeight+ deltaY< canvas.height){
-  	positionY += deltaY;
-  //	mapBounds();
+  	if(checkColision(deltaX, deltaY))
+  	{
+  		positionY += deltaY;
+  	}
   }
   
   checkDoor();
@@ -306,6 +349,34 @@ function checkDoor(){
 	});		
 }
 
+
+function checkColision(deltaX, deltaY){
+
+	let colideX = positionX+width;
+	let colideY = positionY+height;
+	let check = false;
+	
+
+	let keys = Object.keys(mapBounds);
+	
+
+	keys.forEach((key, index) =>{
+		let [posX, posY, coliderWidth, coliderHeight] = mapBounds[key];
+
+			if(positionX+deltaX > posX && colideX+deltaX < posX+coliderWidth &&
+			positionY+deltaY > posY && colideY+deltaY < posY+coliderHeight)
+				{
+					check = false; 
+				}
+				else
+				{
+					check = true;
+				}
+	});		
+
+	return check;
+}
+
 //************************************************************
 //
 //				Funções interact
@@ -318,16 +389,16 @@ function checkInteract(){
 
 	switch(currentDirection){
 		case directions.up:
-			interactY -= 5; //interactBoxSize - TEMP
+			interactY -= 38; //interactBoxSize - TEMP
 			break;
 		case directions.down:
-			interactY += height + 5;
+			interactY += height + 38;
 			break;
 		case directions.left:
-			interactX -= 5;
+			interactX -= 34;
 			break;
 		case directions.right:
-			interactX += width + 5;
+			interactX += width + 34;
 			break;
 	}
 
@@ -337,8 +408,11 @@ function checkInteract(){
 	keys.forEach((key, index) =>{
 		let [posX, posY, interactWidth, interactHeight, interactsWITH] = mapInteracts[key];
 
-		if(interactX > posX && interactX < posX+interactWidth &&
-			interactY > posY && interactY< posY+interactHeight){
+		if(interactX > posX && interactX < posX+interactWidth
+			|| interactX + width > posX && interactX + width < posX+interactWidth
+		 && interactY > posY && interactY< posY+interactHeight
+		 	|| interactY + height > posY && interactY + height < posY+interactHeight
+		 	){
 
   			getInteraction(interactsWITH);
   			interactX = positionX;
@@ -351,7 +425,8 @@ function getInteraction(interactId){
 	switch(interactId)
 	{
 		case 0:
-			window.alert("Interacted");
+			console.log("Interagio" + debugCount);
+			debugCount++;
 			break;
 	}
 }
