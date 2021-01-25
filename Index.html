@@ -69,6 +69,8 @@ let currentLoopIndex = 0;
 let frameCount = 0;
 
 let currentDirection = directions.down;
+let hasInteracted = false;
+
 
 let keyPresses = {};
 
@@ -80,6 +82,11 @@ let mapPassages ={
 	
 };
 setMapPassages(0);
+
+let mapInteracts ={
+
+};
+setMapInteracts(0);
 
 let canvas = document.querySelector('canvas');
 let ctx = canvas.getContext('2d');
@@ -144,11 +151,24 @@ function setMapSrc(mapId){
 	
 }
 
+function setMapInteracts(mapId){
+
+	switch(mapId)
+	{
+		//mapInteracts array per interact = (posX,posY,width,height,interactsWITH)
+		case 0:
+			mapInteracts.interact1 = [-10,-10,20,60,0];
+			break;
+		case 1:
+			break;
+	}
+}
+
 function setMapId(n){
 	mapId = n;
 	setMapSrc(n);
 	setMapPassages(n);
-	//fillCanvas();
+	setMapInteracts(n);
 }
 //************************************************************
 //drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
@@ -175,7 +195,7 @@ loadImage();
 
 //************************************************************
 //
-//				TODO:: Func mapLoad, obj map com coords próprias, snapgrid com essa coords, 
+//				TODO: BattleState, menu, load/save 
 // 
 //************************************************************
 
@@ -189,7 +209,8 @@ function step(){
 
 	//hasMoved é re-declarada a false em cada instância step
 	let hasMoved = false;
-			
+				
+	//movimento x/y
 	if (keyPresses.w) {
     	moveCharacter(0, -moveSpeed, directions.up);
     	hasMoved = true;
@@ -217,9 +238,26 @@ function step(){
 		}
 	}
 
+	//interação com map
+	if(keyPresses.j){
+		if(hasInteracted == false)
+		{
+			checkInteract();
+			hasInteracted = true;
+			console.log("entrouAqui");
+		}
+		else
+		{
+			hasInteracted = false;
+			console.log("entrouAli");
+		}
+	}
+	
+
 	//char mantém idle stance quando pára de se mexer
 	if(!hasMoved){
 		currentLoopIndex = 0;
+		
 	}
 	drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY);
 
@@ -266,6 +304,56 @@ function checkDoor(){
   		
 		}
 	});		
+}
+
+//************************************************************
+//
+//				Funções interact
+// 
+//************************************************************
+
+function checkInteract(){
+	let interactX = positionX;
+	let interactY = positionY;
+
+	switch(currentDirection){
+		case directions.up:
+			interactY -= 5; //interactBoxSize - TEMP
+			break;
+		case directions.down:
+			interactY += height + 5;
+			break;
+		case directions.left:
+			interactX -= 5;
+			break;
+		case directions.right:
+			interactX += width + 5;
+			break;
+	}
+
+	let keys = Object.keys(mapInteracts);
+	//mapInteracts array per interact = (posX,posY,interactWidth,interactHeight,interactsWITH)
+
+	keys.forEach((key, index) =>{
+		let [posX, posY, interactWidth, interactHeight, interactsWITH] = mapInteracts[key];
+
+		if(interactX > posX && interactX < posX+interactWidth &&
+			interactY > posY && interactY< posY+interactHeight){
+
+  			getInteraction(interactsWITH);
+  			interactX = positionX;
+  			interactY = positionY;
+  		}
+  	});
+}
+
+function getInteraction(interactId){
+	switch(interactId)
+	{
+		case 0:
+			window.alert("Interacted");
+			break;
+	}
 }
 //************************************************************
 //
