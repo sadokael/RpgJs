@@ -67,8 +67,8 @@ let debugCount=0;
 // 
 //************************************************************
 //Posição da sprite em relação ao canvas
-let positionX = 0;
-let positionY = 0;
+let positionX = tileWidth*2;
+let positionY = tileHeight*2;
 
 let currentLoopIndex = 0;
 let frameCount = 0;
@@ -178,9 +178,9 @@ function setMapInteracts(mapId){
 		case 1:
 			break;
 		case 2:
-			mapInteracts.interact1 = [tileWidth*4, tileHeight*3, tileWidth, tileHeight,0];
-			mapInteracts.interact1 = [tileWidth*6, tileHeight*3, tileWidth, tileHeight,0];
-			mapInteracts.interact1 = [tileWidth*8, tileHeight*3, tileWidth, tileHeight,0];
+			mapInteracts.interact1 = [tileWidth*3, tileHeight*3, tileWidth, tileHeight,0];
+			mapInteracts.interact1 = [tileWidth*5, tileHeight*3, tileWidth, tileHeight,0];
+			mapInteracts.interact1 = [tileWidth*7, tileHeight*3, tileWidth, tileHeight,0];
 			break;
 	}
 }
@@ -194,10 +194,15 @@ function setMapBounds(mapId){
 		case 1:
 			break;
 		case 2:
-			mapBounds.bound1 = [tileWidth*1.5, tileHeight*1.5, tileWidth*7, tileHeight*7];
-			mapBounds.bound2 = [tileWidth*4, tileHeight*3,tileWidth,tileHeight];
-			mapBounds.bound2 = [tileWidth*6, tileHeight*3,tileWidth,tileHeight];
-			mapBounds.bound2 = [tileWidth*8, tileHeight*3,tileWidth,tileHeight];
+
+			mapBounds.bound1 = [tileWidth*3, tileHeight*2, tileWidth, tileHeight,0];
+			mapBounds.bound2 = [tileWidth*5, tileHeight*2, tileWidth, tileHeight,0];
+			mapBounds.bound3 = [tileWidth*7, tileHeight*2, tileWidth, tileHeight,0];
+			mapBounds.bound4 = [0, 0, tileWidth*10, tileHeight*1];
+			mapBounds.bound5 = [0, 0,tileWidth*0.9,tileHeight*10];
+			mapBounds.bound6 = [tileWidth*9, 0,tileWidth*10,tileHeight*10];
+			mapBounds.bound7 = [0, tileHeight*9,tileWidth*10,tileHeight*10];
+			mapBounds.bound8 = [tileWidth*3, tileHeight*6, tileWidth, tileHeight,0];
 			break;
 	}
 }
@@ -318,7 +323,7 @@ function moveCharacter(deltaX, deltaY, direction) {
   	
   }
   
-  if(positionY + deltaY > 0 && positionY+ scaledHeight+ deltaY< canvas.height){
+  if(positionY + deltaY > 0 && positionY+scaledHeight+ deltaY< canvas.height){
   	if(checkColision(deltaX, deltaY))
   	{
   		positionY += deltaY;
@@ -349,32 +354,35 @@ function checkDoor(){
 	});		
 }
 
-
 function checkColision(deltaX, deltaY){
 
-	let colideX = positionX+width;
-	let colideY = positionY+height;
-	let check = false;
+	//a halfWith não é necessária
+	let colideX = positionX+scaledWidth-3;
+	let halfHeight = positionY+(scaledHeight/2)-3;
+	let colideY = positionY+scaledHeight -3;
+
+
+	let check = true;
 	
 
 	let keys = Object.keys(mapBounds);
 	
-
+	
 	keys.forEach((key, index) =>{
 		let [posX, posY, coliderWidth, coliderHeight] = mapBounds[key];
-
-			if(positionX+deltaX > posX && colideX+deltaX < posX+coliderWidth &&
-			positionY+deltaY > posY && colideY+deltaY < posY+coliderHeight)
-				{
-					check = false; 
-				}
-				else
-				{
-					check = true;
-				}
-	});		
+		
+		if(positionX+deltaX < posX+coliderWidth &&
+		   colideX+deltaX > posX &&
+		   halfHeight+deltaY < posY+coliderHeight &&
+		   colideY+deltaY > posY)
+			{
+				
+				check = false; 
+			}
+	});
 
 	return check;
+	
 }
 
 //************************************************************
@@ -395,10 +403,10 @@ function checkInteract(){
 			interactY += height + 38;
 			break;
 		case directions.left:
-			interactX -= 34;
+			interactX -= 38;
 			break;
 		case directions.right:
-			interactX += width + 34;
+			interactX += width + 38;
 			break;
 	}
 
@@ -479,18 +487,21 @@ function mapChange(){
 
 /*
 var map = {
-    cols: 8,
-    rows: 8,
-    tsize: 64,
+    cols: 10,
+    rows: 10,
+    tsize: 100,
     tiles: [
-        1, 3, 3, 3, 1, 1, 3, 1,
-        1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 2, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 2, 1, 1, 1, 1,
-        1, 1, 1, 1, 2, 1, 1, 1,
-        1, 1, 1, 1, 2, 1, 1, 1,
-        1, 1, 1, 1, 2, 1, 1, 1
+        1, 3, 3, 3, 1, 1, 3, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 2, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 2, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 2, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 2, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 2, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 2, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 2, 1, 1, 1, 1, 1
+       
     ],
     getTile: function (col, row) {
         return this.tiles[row * map.cols + col];
