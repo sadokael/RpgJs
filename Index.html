@@ -43,7 +43,7 @@ const scaledHeight = scale * height;
 //pixeis que a sprite viaja
 const moveSpeed = 2;
 
-//ciclo com a height na spriteSheet
+//ciclo com as linhas na spriteSheet
 const cycleLoop = [0, 0, 0, 0];
 
 //quantidade de frames por draw
@@ -334,9 +334,12 @@ function step(){
 	//fixed fps's virtuais
 	if(hasMoved){
 		frameCount++;
+		//só arranca quando o counter bate no frameLimit
 		if(frameCount >= frameLimit){
 			frameCount = 0;
+			//incrementa a posição X na SpriteSheet
 			currentLoopIndex++;
+			//chegando ao fim, volta ao inicio
 			if(currentLoopIndex >= cycleLoop.length){
 				currentLoopIndex = 0;
 			}
@@ -351,6 +354,7 @@ function step(){
 	}
 
 	//desenha tudo
+	//						        	Este 0 passa a CurrentDirection (Y na SpriteSheet)
 	drawFrame(cycleLoop[currentLoopIndex], 0, positionX, positionY);
 
 	//recursion para o jogo andar
@@ -373,7 +377,6 @@ function moveCharacter(deltaX, deltaY, direction) {
   	
   }
   
-
   //ScaledHeight/2, para só detectar colisão nas "pernas"
   //metade para outer map, menos para sprite colision
   if(positionY+(scaledHeight/2) + deltaY > 0 && positionY+scaledHeight+ deltaY< canvas.height){
