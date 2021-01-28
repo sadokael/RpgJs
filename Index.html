@@ -19,9 +19,9 @@
 <script>
 
 //************************************************************
-//
-//				~Constantes~
-// 
+//															 *
+//				~Constantes~								 *
+// 															 *
 //************************************************************
 //scale para a pixel-art ("pixel-size")
 const scale = 1;
@@ -33,8 +33,7 @@ const height = 104;
 
 //largura/altura dos tiles
 //se no final for o mesmo size, roll-up numa única var
-const tileWidth = 38;
-const tileHeight = 38;
+const tileSize = 38;
 
 //largura/altura scaled
 const scaledWidth = scale * width;
@@ -71,14 +70,13 @@ const passageParams = {
 //Temp debug stuff
 let debugCount=0;
 //************************************************************
-//
-//				~Variáveis~
-// 
+//															 *
+//				~Variáveis~									 *
+// 															 *
 //************************************************************
 //Posição da sprite em relação ao canvas
-let positionX = tileWidth*2;
-let positionY = tileHeight*2;
-
+let positionX = tileSize*2;
+let positionY = tileSize*2;
 
 let currentLoopIndex = 0;
 let frameCount = 0;
@@ -88,20 +86,18 @@ let currentDirection = directions.down;
 //Declarado de início, para não "actualizar"
 let hasInteracted = false;
 
-
 let keyPresses = {};
 
 //************************************************************
-//
-//				~Define e init do mapa~
-// 
+//															 *
+//				~Define e init do mapa~ 					 *
+// 															 *
 //************************************************************
 
 //no final cleanup, dar rollup ás atribuições na função SetMapId()
 //para ficarem só os "let"s
 let map = new Image();
 map.src = 'SpriteSheet/maptest0.png';
-
 
 //era boa ideia criar objectos com Image att e Array att, mas...
 let fore = new Image();
@@ -131,9 +127,9 @@ map.onload = function(){
 let img = new Image();
 
 //************************************************************
-//
-//				~Funções de draw~
-// 
+//															 *
+//				~Funções de draw~							 *
+// 															 *
 //************************************************************
 
 //primeiro fill, á partida sai na versão final
@@ -170,11 +166,11 @@ function setMapPassages(mapId){
 		//mapPassages array per passage = (posX,posY,width,height,connectsTO,new posX, new posY)
 		case 0:
 
-			mapPassages.passage1 = [tileWidth*11-10,tileHeight*2, tileWidth, tileHeight*3,1,tileWidth+10, tileHeight*4];
+			mapPassages.passage1 = [tileSize*11-10,tileSize*2, tileSize, tileSize*3,1,tileSize+10, tileSize*4];
 			mapPassages.passage2 = [];
 			break;
 		case 1:
-			mapPassages.passage1 = [0,tileHeight*2,tileWidth,tileHeight*3,0,tileWidth*11-10,tileHeight*4];
+			mapPassages.passage1 = [0,tileSize*2,tileSize,tileSize*3,0,tileSize*11-10,tileSize*4];
 			mapPassages.passage2 = [];
 			break;
 		case 2:
@@ -216,9 +212,9 @@ function setMapInteracts(mapId){
 			mapInteracts.interact2 = [];
 			break;
 		case 2:
-			mapInteracts.interact1 = [tileWidth*3, tileHeight*2, tileWidth, tileHeight,0];
-			mapInteracts.interact2 = [tileWidth*5, tileHeight*2, tileWidth, tileHeight,0];
-			mapInteracts.interact3 = [tileWidth*7, tileHeight*2, tileWidth, tileHeight,0];
+			mapInteracts.interact1 = [tileSize*3, tileSize*2, tileSize, tileSize,0];
+			mapInteracts.interact2 = [tileSize*5, tileSize*2, tileSize, tileSize,0];
+			mapInteracts.interact3 = [tileSize*7, tileSize*2, tileSize, tileSize,0];
 			break;
 	}
 }
@@ -229,31 +225,32 @@ function setMapBounds(mapId){
 	{
 		//[posX, posY, coliderWidth, coliderHeight]
 		case 0:
-			mapBounds.top = [0, -(tileHeight/2), tileWidth*12, tileHeight*0.5];
-			mapBounds.left = [0, 0, tileWidth*0.5, tileHeight*10];
-			mapBounds.bottom = [0, tileHeight*10, tileWidth*12, tileHeight];
-			mapBounds.right1 = [tileWidth*12, 0, tileWidth, tileHeight*4];
-			mapBounds.right2 = [tileWidth*12, tileHeight*7,tileWidth,tileHeight*4];
-			mapBounds.tree1 = [tileWidth*2, tileHeight*2,tileWidth,tileHeight];
-			mapBounds.tree2 = [tileWidth*8,tileHeight*8,tileWidth,tileHeight];
+			mapBounds.top = [0, -(tileSize/2), tileSize*12, tileSize*0.5];
+			mapBounds.left = [0, 0, tileSize*0.5, tileSize*10];
+			mapBounds.bottom = [0, tileSize*10, tileSize*12, tileSize];
+			mapBounds.right1 = [tileSize*12, 0, tileSize, tileSize*4];
+			mapBounds.right2 = [tileSize*12, tileSize*7,tileSize,tileSize*4];
+			mapBounds.tree1 = [tileSize*2, tileSize*2,tileSize,tileSize];
+			mapBounds.tree2 = [tileSize*8,tileSize*8,tileSize,tileSize];
 			break;
-		case 1:
-			break;
-		case 2:
 
-			mapBounds.bound1 = [tileWidth*3, tileHeight*2, tileWidth, tileHeight];
-			mapBounds.bound2 = [tileWidth*5, tileHeight*2, tileWidth, tileHeight];
-			mapBounds.bound3 = [tileWidth*7, tileHeight*2, tileWidth, tileHeight];
-			mapBounds.bound4 = [0, 0, tileWidth*10, tileHeight*1];
-			mapBounds.bound5 = [0, 0,tileWidth*0.9,tileHeight*10];
-			mapBounds.bound6 = [tileWidth*9, 0,tileWidth*10,tileHeight*10];
-			mapBounds.bound7 = [0, tileHeight*9,tileWidth*10,tileHeight*10];
-			mapBounds.bound8 = [tileWidth*3, tileHeight*6, tileWidth, tileHeight];
+		case 1:
+
 			break;
+
+		case 2:
+			mapBounds.bound1 = [tileSize*3, tileSize*2, tileSize, tileSize];
+			mapBounds.bound2 = [tileSize*5, tileSize*2, tileSize, tileSize];
+			mapBounds.bound3 = [tileSize*7, tileSize*2, tileSize, tileSize];
+			mapBounds.bound4 = [0, 0, tileSize*10, tileSize*1];
+			mapBounds.bound5 = [0, 0,tileSize*0.9,tileSize*10];
+			mapBounds.bound6 = [tileSize*9, 0,tileSize*10,tileSize*10];
+			mapBounds.bound7 = [0, tileSize*9,tileSize*10,tileSize*10];
+			mapBounds.bound8 = [tileSize*3, tileSize*6, tileSize, tileSize];
+			break;
+
 	}
 }
-
-
 //************************************************************
 //drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
 //				   s= source 				d= destination(canvas)
@@ -272,27 +269,37 @@ function drawFrame(frameX, frameY, canvasX, canvasY){
 
 }
 //************************************************************
-//
-//				~kick-start~
-// 
+//															 *
+//				~kick-start~ 								 *
+// 															 *
 //************************************************************
-
-
 //Aqui fica a func de start, depois do load state
 
 //temporariamente carrega directo a primeira imagem
 loadImage();
 
 //************************************************************
-//
-//				TODO:  menu, load/save -------------------------------***
-// 
+//															 *
+//				TODO:  menu, load/save --------------------***
+// 															 *
 //************************************************************
+/*
 
+	Função save salva:
+	mapID
+	positionX/Y
+	_"Inventory: true ou false"
+	...extras
+
+	Falta potencialmente implementar
+	movable objects, se sim, gravar posX/Y deles
+	(junto com bool hasMoved Y/N) 
+
+*/
 //************************************************************
-//
-//				Função main loop - step
-// 
+// 															 *
+//				Função main loop - step 					 *
+// 															 *
 //************************************************************
 function step(){
 	ctx.clearRect(0,0, canvas.width, canvas.height);
@@ -361,9 +368,9 @@ function step(){
 	window.requestAnimationFrame(step); 
 }
 //************************************************************
-//
-//				Função de movimento (deltas)
-// 
+//															 *
+//				Função de movimento (deltas) 				 *
+// 															 *
 //************************************************************
 function moveCharacter(deltaX, deltaY, direction) {
 //posX/posY == canto topleft da char
@@ -374,9 +381,7 @@ function moveCharacter(deltaX, deltaY, direction) {
   	{
   		positionX += deltaX;
   	}
-  	
   }
-  
   //ScaledHeight/2, para só detectar colisão nas "pernas"
   //metade para outer map, menos para sprite colision
   if(positionY+(scaledHeight/2) + deltaY > 0 && positionY+scaledHeight+ deltaY< canvas.height){
@@ -385,7 +390,6 @@ function moveCharacter(deltaX, deltaY, direction) {
   		positionY += deltaY;
   	}
   }
-  
   //checkDoor a cada incremento de posX/Y
   checkDoor();
   currentDirection = direction;
@@ -393,9 +397,7 @@ function moveCharacter(deltaX, deltaY, direction) {
 
 //verifica se "colide" com passagens, dá trigger a mapChange
 function checkDoor(){
-
 	let keys = Object.keys(mapPassages);
-	
 	keys.forEach((key, index) =>{
 		let [posX, posY, passWidth, passHeight, connectsTo, newPosX, newPosY] = mapPassages[key];
 
@@ -411,9 +413,7 @@ function checkDoor(){
 		}
 	});		
 }
-
-
-//jeeeesus
+//jeeeesus, esta custou
 function checkColision(deltaX, deltaY){
 
 	//conta estranha, mas apenas para "feel" de colisão correcta
@@ -426,7 +426,6 @@ function checkColision(deltaX, deltaY){
 	//muda até checkColision voltar a ser called
 	let check = true;
 	
-
 	//Object.keys é awsome, traduz todas as propriedades para uma array 
 	//de strings (keys = ["top","bottom",left...])
 	let keys = Object.keys(mapBounds);
@@ -448,11 +447,10 @@ function checkColision(deltaX, deltaY){
 
 	return check;
 }
-
 //************************************************************
-//
-//				Funções interact
-// 
+//															 *
+//				Funções interact 							 *
+// 															 *
 //************************************************************
 
 function checkInteract(){
@@ -486,7 +484,7 @@ function checkInteract(){
 			|| interactX + width > posX && interactX + width < posX+interactWidth
 		 && interactY > posY && interactY< posY+interactHeight
 		 	|| interactY + height > posY && interactY + height < posY+interactHeight
-		 	){
+		 ){
 
   			getInteraction(interactsWITH);
   			interactX = positionX;
@@ -494,7 +492,6 @@ function checkInteract(){
   		}
   	});
 }
-
 
 //gere o tipo de interação (prompt com diálogo, get/set item)
 function getInteraction(interactId){
@@ -507,11 +504,10 @@ function getInteraction(interactId){
 	}
 }
 //************************************************************
-//
-//				Funções keypress
-// 
+//															 *
+//				Funções keypress 							 *
+// 															 *
 //************************************************************
-
 //eventListeners
 window.addEventListener('keydown', keyDownListener, false);
 function keyDownListener(e){
@@ -522,36 +518,35 @@ window.addEventListener('keyup', keyUpListener, false);
 function keyUpListener(e){
 	keyPresses[e.key] = false;
 }
+//************************************************************
+//															 *
+//				Fim do script     							 *
+// 															 *
+//************************************************************
 
 //************************************************************
-//
-//				Fim do script
-// 
+//															 *
+//				<área temp> 								 *
+// 															 *
 //************************************************************
 
-
-//************************************************************
-//
-//				área temp
-// 
-//************************************************************
 /*
 function mapBounds(){
-	
 		mapChange();
 		positionX = 0;
 		positionY = 0;
-	
 }
 
 function mapChange(){
 	map.src = 'SpriteSheet/testmap2.png';
 }
 */
-
+//************************************************************
+//															 *
+//				</área temp> 								 *
+// 															 *
+//************************************************************
 </script>
-
 
 </body>
 </html>
-
