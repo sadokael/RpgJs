@@ -32,6 +32,7 @@ const width = 56;
 const height = 104;
 
 //largura/altura dos tiles
+//se no final for o mesmo size, roll-up numa única var
 const tileWidth = 38;
 const tileHeight = 38;
 
@@ -48,6 +49,8 @@ const cycleLoop = [0, 0, 0, 0];
 //quantidade de frames por draw
 const frameLimit = 12;
 
+//Enums:
+
 //direções
 const directions = {
    up: 2,
@@ -55,6 +58,8 @@ const directions = {
    left: 3,
    right: 1,
 }
+
+//passagens
 const passageParams = {
 	posX: 0,
 	posY: 1,
@@ -63,6 +68,7 @@ const passageParams = {
 	connectsTo: 4,
 }
 
+//Temp debug stuff
 let debugCount=0;
 //************************************************************
 //
@@ -73,10 +79,13 @@ let debugCount=0;
 let positionX = tileWidth*2;
 let positionY = tileHeight*2;
 
+
 let currentLoopIndex = 0;
 let frameCount = 0;
 
 let currentDirection = directions.down;
+
+//Declarado de início, para não "actualizar"
 let hasInteracted = false;
 
 
@@ -87,9 +96,16 @@ let keyPresses = {};
 //				~Define e init do mapa~
 // 
 //************************************************************
+
+//no final cleanup, dar rollup ás atribuições na função SetMapId()
+//para ficarem só os "let"s
 let map = new Image();
 map.src = 'SpriteSheet/maptest0.png';
 
+
+//era boa ideia criar objectos com Image att e Array att, mas...
+let fore = new Image();
+fore.src = '';
 let mapId = 0;
 let mapBounds ={};
 setMapBounds(0);
@@ -100,11 +116,14 @@ setMapPassages(0);
 let mapInteracts ={};
 setMapInteracts(0);
 
+//canvas para o que apareçe "á frente" da char
 let canvasFluff = document.getElementById('foreground');
 
+//canvas para background e char
 let canvas = document.getElementById('background');
 let ctx = canvas.getContext('2d');
 
+//esta está só de kickstart, depois sai
 map.onload = function(){
 	fillCanvas(map);
 }
@@ -116,14 +135,17 @@ let img = new Image();
 //				~Funções de draw~
 // 
 //************************************************************
+
+//primeiro fill, á partida sai na versão final
 function fillCanvas(map){
-	
 	canvas.width = map.width;
 	canvas.height = map.height;
 	canvasFluff.width = map.width;
 	canvasFluff.height = map.height;
 	ctx.drawImage(map,0,0);
 }
+
+//kickstart também
 function loadImage(){
 	img.src = 'SpriteSheet/hero1.png';
 	//func onload corre at start, começa a animação
@@ -132,6 +154,15 @@ function loadImage(){
 	};
 }
 
+//function de tidy-up para dar trigger a todos os switch'es, na troca de mapa
+function setMapId(n){
+	mapId = n;
+	setMapSrc(n);
+	setMapPassages(n);
+	setMapInteracts(n);
+}
+
+//parte "hardcode" de bounds/passagens/interactibles/src
 function setMapPassages(mapId){
 	
 	switch(mapId)
@@ -158,12 +189,15 @@ function setMapSrc(mapId){
 	{
 		case 0:
 			map.src = 'SpriteSheet/maptest0.png';
+			fore.src = '';
 			break;
 		case 1:
 			map.src = 'SpriteSheet/maptest1.png';
+			fore.src = '';
 			break;
 		case 2:
 			map.src = 'SpriteSheet/testTiledMap.png';
+			fore.src = '';
 			break;
 	}
 }
@@ -183,8 +217,8 @@ function setMapInteracts(mapId){
 			break;
 		case 2:
 			mapInteracts.interact1 = [tileWidth*3, tileHeight*2, tileWidth, tileHeight,0];
-			mapInteracts.interact1 = [tileWidth*5, tileHeight*2, tileWidth, tileHeight,0];
-			mapInteracts.interact1 = [tileWidth*7, tileHeight*2, tileWidth, tileHeight,0];
+			mapInteracts.interact2 = [tileWidth*5, tileHeight*2, tileWidth, tileHeight,0];
+			mapInteracts.interact3 = [tileWidth*7, tileHeight*2, tileWidth, tileHeight,0];
 			break;
 	}
 }
@@ -219,12 +253,7 @@ function setMapBounds(mapId){
 	}
 }
 
-function setMapId(n){
-	mapId = n;
-	setMapSrc(n);
-	setMapPassages(n);
-	setMapInteracts(n);
-}
+
 //************************************************************
 //drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
 //				   s= source 				d= destination(canvas)
@@ -232,10 +261,14 @@ function setMapId(n){
 
 //func para lidar com a matemática
 function drawFrame(frameX, frameY, canvasX, canvasY){
+	//Primeiro o background
 		ctx.drawImage(map,0,0);
+	//depois a character
 		ctx.drawImage(img,
 						frameX * width, frameY * height, width, height,
 						canvasX, canvasY, scaledWidth, scaledHeight);
+	//e depois o fluff
+		ctx.drawImage(fore,0,0);
 
 }
 //************************************************************
@@ -244,11 +277,15 @@ function drawFrame(frameX, frameY, canvasX, canvasY){
 // 
 //************************************************************
 
+
+//Aqui fica a func de start, depois do load state
+
+//temporariamente carrega directo a primeira imagem
 loadImage();
 
 //************************************************************
 //
-//				TODO: BattleState, menu, load/save 
+//				TODO:  menu, load/save -------------------------------***
 // 
 //************************************************************
 
@@ -280,6 +317,8 @@ function step(){
     	hasMoved = true;
   	}
 
+  	//hasInteracted é declarada no start-up, para não "actualizar"
+  	//em cada step
   	if(keyPresses.j){
 		if(hasInteracted == false)
 		{
@@ -292,6 +331,7 @@ function step(){
 		}
 	}
 
+	//fixed fps's virtuais
 	if(hasMoved){
 		frameCount++;
 		if(frameCount >= frameLimit){
@@ -304,10 +344,13 @@ function step(){
 	}
 
 	//char mantém idle stance quando pára de se mexer
+	//TODO: criar loop á parte para idle animation ----------------------****
 	if(!hasMoved){
 		currentLoopIndex = 0;
 		
 	}
+
+	//desenha tudo
 	drawFrame(cycleLoop[currentLoopIndex], 0, positionX, positionY);
 
 	//recursion para o jogo andar
@@ -330,6 +373,9 @@ function moveCharacter(deltaX, deltaY, direction) {
   	
   }
   
+
+  //ScaledHeight/2, para só detectar colisão nas "pernas"
+  //metade para outer map, menos para sprite colision
   if(positionY+(scaledHeight/2) + deltaY > 0 && positionY+scaledHeight+ deltaY< canvas.height){
   	if(checkColision(deltaX, deltaY))
   	{
@@ -337,10 +383,12 @@ function moveCharacter(deltaX, deltaY, direction) {
   	}
   }
   
+  //checkDoor a cada incremento de posX/Y
   checkDoor();
   currentDirection = direction;
 }
 
+//verifica se "colide" com passagens, dá trigger a mapChange
 function checkDoor(){
 
 	let keys = Object.keys(mapPassages);
@@ -353,24 +401,36 @@ function checkDoor(){
   		
   		positionX = newPosX;
   		positionY = newPosY;
+
+  		//TODO: implementar transacção de mapas (wipe, translate, smthing) ------------------***
   		setMapId(connectsTo);
 
 		}
 	});		
 }
 
+
+//jeeeesus
 function checkColision(deltaX, deltaY){
 
-	//a halfWith não é necessária
-	let colideX = positionX+scaledWidth-3;
+	//conta estranha, mas apenas para "feel" de colisão correcta
 	let halfHeight = positionY+(scaledHeight/1.3)+3;
+
+	let colideX = positionX+scaledWidth-3;
 	let colideY = positionY+scaledHeight -3;
 
+	//check declarado fora do ciclo forEach, caso algum acuse false, não
+	//muda até checkColision voltar a ser called
 	let check = true;
 	
+
+	//Object.keys é awsome, traduz todas as propriedades para uma array 
+	//de strings (keys = ["top","bottom",left...])
 	let keys = Object.keys(mapBounds);
 	
 	keys.forEach((key, index) =>{
+
+		//atribui os valores em array a estas 4 vars
 		let [posX, posY, coliderWidth, coliderHeight] = mapBounds[key];
 		
 		if(positionX+deltaX < posX+coliderWidth &&
@@ -393,12 +453,13 @@ function checkColision(deltaX, deltaY){
 //************************************************************
 
 function checkInteract(){
+	//a minha ideia é criar uma "caixa" na currentDirection
 	let interactX = positionX;
 	let interactY = positionY;
 
 	switch(currentDirection){
 		case directions.up:
-			interactY -= 38; //interactBoxSize - TEMP
+			interactY -= 38; //interactBoxSize - TEMP, vai ser mais próxima do size de um tile
 			break;
 		case directions.down:
 			interactY += height + 38;
@@ -417,7 +478,7 @@ function checkInteract(){
 	keys.forEach((key, index) =>{
 		let [posX, posY, interactWidth, interactHeight, interactsWITH] = mapInteracts[key];
 
-
+		//weird enuff, foi-me mais fácil fazer esta de && e ||, do que a colision normal
 		if(interactX > posX && interactX < posX+interactWidth
 			|| interactX + width > posX && interactX + width < posX+interactWidth
 		 && interactY > posY && interactY< posY+interactHeight
@@ -431,6 +492,8 @@ function checkInteract(){
   	});
 }
 
+
+//gere o tipo de interação (prompt com diálogo, get/set item)
 function getInteraction(interactId){
 	switch(interactId)
 	{
@@ -446,6 +509,7 @@ function getInteraction(interactId){
 // 
 //************************************************************
 
+//eventListeners
 window.addEventListener('keydown', keyDownListener, false);
 function keyDownListener(e){
 	keyPresses[e.key] = true;
