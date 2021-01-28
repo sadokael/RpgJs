@@ -9,7 +9,11 @@
 </head>
 <body>
   <!-- Area do jogo -->
- <canvas class="pixel-art" width="500" height="300">
+ <canvas id="background" class="pixel-art" width="500" height="300"
+ 			style="left: 0; top: 0; z-index: 0; position: absolute;">
+ </canvas>
+ <canvas id="foreground" class="pixel-art" width="500" height="300"
+ 			style="left: 0; top: 0; z-index: 1; position: absolute;">
  </canvas>
 
 <script>
@@ -24,8 +28,8 @@ const scale = 1;
 
 //largura/altura da sprite
 //final = w: 38 h: 32x2
-const width = 38; 
-const height = 72;
+const width = 56; 
+const height = 104;
 
 //largura/altura dos tiles
 const tileWidth = 38;
@@ -59,7 +63,6 @@ const passageParams = {
 	connectsTo: 4,
 }
 
-
 let debugCount=0;
 //************************************************************
 //
@@ -79,8 +82,6 @@ let hasInteracted = false;
 
 let keyPresses = {};
 
-
-
 //************************************************************
 //
 //				~Define e init do mapa~
@@ -99,7 +100,9 @@ setMapPassages(0);
 let mapInteracts ={};
 setMapInteracts(0);
 
-let canvas = document.querySelector('canvas');
+let canvasFluff = document.getElementById('foreground');
+
+let canvas = document.getElementById('background');
 let ctx = canvas.getContext('2d');
 
 map.onload = function(){
@@ -107,7 +110,6 @@ map.onload = function(){
 }
 
 let img = new Image();
-
 
 //************************************************************
 //
@@ -118,7 +120,8 @@ function fillCanvas(map){
 	
 	canvas.width = map.width;
 	canvas.height = map.height;
-
+	canvasFluff.width = map.width;
+	canvasFluff.height = map.height;
 	ctx.drawImage(map,0,0);
 }
 function loadImage(){
@@ -129,7 +132,6 @@ function loadImage(){
 	};
 }
 
-
 function setMapPassages(mapId){
 	
 	switch(mapId)
@@ -137,11 +139,11 @@ function setMapPassages(mapId){
 		//mapPassages array per passage = (posX,posY,width,height,connectsTO,new posX, new posY)
 		case 0:
 
-			mapPassages.passage1 = [105,81,30,30,1,0,0];
-			mapPassages.passage2 = [15,81,30,30,1,100,100];
+			mapPassages.passage1 = [tileWidth*11-10,tileHeight*2, tileWidth, tileHeight*3,1,tileWidth+10, tileHeight*4];
+			mapPassages.passage2 = [];
 			break;
 		case 1:
-			mapPassages.passage1 = [160,81,30,30,0,50,50];
+			mapPassages.passage1 = [0,tileHeight*2,tileWidth,tileHeight*3,0,tileWidth*11-10,tileHeight*4];
 			mapPassages.passage2 = [];
 			break;
 		case 2:
@@ -193,13 +195,13 @@ function setMapBounds(mapId){
 	{
 		//[posX, posY, coliderWidth, coliderHeight]
 		case 0:
-			mapBounds.bound1 = [0, 0, tileWidth*12, tileHeight*0.5];
-			mapBounds.bound2 = [0, 0, tileWidth*0.5, tileHeight*10];
-			mapBounds.bound3 = [0, tileHeight*11, tileWidth*10, tileHeight];
-			mapBounds.bound4 = [tileWidth*10, 0, tileWidth, tileHeight*4];
-			mapBounds.bound5 = [tileWidth*10, tileHeight*8,tileWidth,tileHeight*4];
-			mapBounds.bound6 = [tileWidth*2, tileHeight,tileWidth,tileHeight*2];
-			mapBounds.bound7 = [tileWidth*8,tileHeight*8,tileWith,tileHeight*2];
+			mapBounds.top = [0, -(tileHeight/2), tileWidth*12, tileHeight*0.5];
+			mapBounds.left = [0, 0, tileWidth*0.5, tileHeight*10];
+			mapBounds.bottom = [0, tileHeight*10, tileWidth*12, tileHeight];
+			mapBounds.right1 = [tileWidth*12, 0, tileWidth, tileHeight*4];
+			mapBounds.right2 = [tileWidth*12, tileHeight*7,tileWidth,tileHeight*4];
+			mapBounds.tree1 = [tileWidth*2, tileHeight*2,tileWidth,tileHeight];
+			mapBounds.tree2 = [tileWidth*8,tileHeight*8,tileWidth,tileHeight];
 			break;
 		case 1:
 			break;
@@ -236,8 +238,6 @@ function drawFrame(frameX, frameY, canvasX, canvasY){
 						canvasX, canvasY, scaledWidth, scaledHeight);
 
 }
-
-
 //************************************************************
 //
 //				~kick-start~
@@ -292,7 +292,6 @@ function step(){
 		}
 	}
 
-
 	if(hasMoved){
 		frameCount++;
 		if(frameCount >= frameLimit){
@@ -303,8 +302,6 @@ function step(){
 			}
 		}
 	}
-
-	
 
 	//char mantém idle stance quando pára de se mexer
 	if(!hasMoved){
@@ -333,7 +330,7 @@ function moveCharacter(deltaX, deltaY, direction) {
   	
   }
   
-  if(positionY + deltaY > 0 && positionY+scaledHeight+ deltaY< canvas.height){
+  if(positionY+(scaledHeight/2) + deltaY > 0 && positionY+scaledHeight+ deltaY< canvas.height){
   	if(checkColision(deltaX, deltaY))
   	{
   		positionY += deltaY;
@@ -348,7 +345,6 @@ function checkDoor(){
 
 	let keys = Object.keys(mapPassages);
 	
-
 	keys.forEach((key, index) =>{
 		let [posX, posY, passWidth, passHeight, connectsTo, newPosX, newPosY] = mapPassages[key];
 
@@ -359,7 +355,6 @@ function checkDoor(){
   		positionY = newPosY;
   		setMapId(connectsTo);
 
-  		
 		}
 	});		
 }
@@ -371,12 +366,9 @@ function checkColision(deltaX, deltaY){
 	let halfHeight = positionY+(scaledHeight/1.3)+3;
 	let colideY = positionY+scaledHeight -3;
 
-
 	let check = true;
 	
-
 	let keys = Object.keys(mapBounds);
-	
 	
 	keys.forEach((key, index) =>{
 		let [posX, posY, coliderWidth, coliderHeight] = mapBounds[key];
@@ -392,7 +384,6 @@ function checkColision(deltaX, deltaY){
 	});
 
 	return check;
-	
 }
 
 //************************************************************
@@ -490,69 +481,7 @@ function mapChange(){
 	map.src = 'SpriteSheet/testmap2.png';
 }
 */
-//************************************************************
-//
-//				no-scroll map:
-// 
-//************************************************************
 
-/*
-var map = {
-    cols: 10,
-    rows: 10,
-    tsize: 100,
-    tiles: [
-        1, 3, 3, 3, 1, 1, 3, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 2, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 2, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 2, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 2, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 2, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 2, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 2, 1, 1, 1, 1, 1
-       
-    ],
-    getTile: function (col, row) {
-        return this.tiles[row * map.cols + col];
-    }
-};
-
-Game.load = function () {
-    return [
-        Loader.loadImage('tiles', '../assets/tiles.png')
-    ];
-};
-
-Game.init = function () {
-    this.tileAtlas = Loader.getImage('tiles');
-};
-
-Game.update = function (delta) {
-};
-
-Game.render = function () {
-    for (var c = 0; c < map.cols; c++) {
-        for (var r = 0; r < map.rows; r++) {
-            var tile = map.getTile(c, r);
-            if (tile !== 0) { // 0 => empty tile
-                this.ctx.drawImage(
-                    this.tileAtlas, // image
-                    (tile - 1) * map.tsize, // source x
-                    0, // source y
-                    map.tsize, // source width
-                    map.tsize, // source height
-                    c * map.tsize,  // target x
-                    r * map.tsize, // target y
-                    map.tsize, // target width
-                    map.tsize // target height
-                );
-            }
-        }
-    }
-};
-*/
 </script>
 
 

@@ -2,6 +2,26 @@ canvas {
   border: 1px solid black;
 }
 
+
+/*https://developer.ibm.com/technologies/web-development/tutorials/wa-canvashtml5layering/*/
+/*Para permitir overlay stack das canvas*/
+#viewport {
+    /**
+     * Position relative so that canvas elements
+     * inside of it will be relative to the parent
+     */
+    position: relative;
+}
+
+#viewport canvas {
+    /**
+     * Position absolute provides canvases to be able
+     * to be layered on top of each other
+     * Be sure to remember a z-index!
+     */
+    
+    background-color: transparent;
+}
 .pixel-art {
   /*Esta porra para ficar com o mesmo aspect ratio*/
  image-rendering: pixelated;
