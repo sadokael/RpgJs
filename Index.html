@@ -33,7 +33,7 @@ const height = 104;
 
 //largura/altura dos tiles
 //se no final for o mesmo size, roll-up numa única var
-const tileSize = 38;
+const tileSize = 56;
 
 //largura/altura scaled
 const scaledWidth = scale * width;
@@ -97,7 +97,7 @@ let keyPresses = {};
 //no final cleanup, dar rollup ás atribuições na função SetMapId()
 //para ficarem só os "let"s
 let map = new Image();
-map.src = 'SpriteSheet/maptest0.png';
+map.src = 'SpriteSheet/testeFolha.png';
 
 //era boa ideia criar objectos com Image att e Array att, mas...
 let fore = new Image();
@@ -125,6 +125,15 @@ map.onload = function(){
 }
 
 let img = new Image();
+
+let folha = new Image();
+folha.src= 'SpriteSheet/folhaBase.png';
+
+//posX/Y da folha, para efeitos debug. final terá uma func
+//que atribui a pos no mapLoad
+let folhaPosX = tileSize*6;
+let folhaPosY = tileSize;
+let isInFolha = false;
 
 //************************************************************
 //															 *
@@ -156,6 +165,7 @@ function setMapId(n){
 	setMapSrc(n);
 	setMapPassages(n);
 	setMapInteracts(n);
+	//drawFolha(n);
 }
 
 //parte "hardcode" de bounds/passagens/interactibles/src
@@ -224,7 +234,9 @@ function setMapBounds(mapId){
 	switch(mapId)
 	{
 		//[posX, posY, coliderWidth, coliderHeight]
+		//mapa 0 é só para testes
 		case 0:
+		/*
 			mapBounds.top = [0, -(tileSize/2), tileSize*12, tileSize*0.5];
 			mapBounds.left = [0, 0, tileSize*0.5, tileSize*10];
 			mapBounds.bottom = [0, tileSize*10, tileSize*12, tileSize];
@@ -232,6 +244,9 @@ function setMapBounds(mapId){
 			mapBounds.right2 = [tileSize*12, tileSize*7,tileSize,tileSize*4];
 			mapBounds.tree1 = [tileSize*2, tileSize*2,tileSize,tileSize];
 			mapBounds.tree2 = [tileSize*8,tileSize*8,tileSize,tileSize];
+		*/
+			
+			mapBounds.water = [tileSize*4,0,tileSize*4,tileSize*11];
 			break;
 
 		case 1:
@@ -260,6 +275,11 @@ function setMapBounds(mapId){
 function drawFrame(frameX, frameY, canvasX, canvasY){
 	//Primeiro o background
 		ctx.drawImage(map,0,0);
+	//depois plataformas (se aplicável)	
+		ctx.drawImage(folha,
+						0,0, tileSize,tileSize,			
+						folhaPosX,folhaPosY,tileSize,tileSize);			
+		
 	//depois a character
 		ctx.drawImage(img,
 						frameX * width, frameY * height, width, height,
@@ -304,25 +324,37 @@ loadImage();
 function step(){
 	ctx.clearRect(0,0, canvas.width, canvas.height);
 
+
 	//hasMoved é re-declarada a false em cada instância step
 	let hasMoved = false;
-				
+	
+	//se estiver na folha, quer mexa quer não, a posição dela é 
+	//relativa á folha
+	if(isInFolha)
+	{
+		positionX = folhaPosX;
+		positionY = folhaPosY-tileSize;
+	}
 	//movimento x/y
+	
 	if (keyPresses.w) {
-    	moveCharacter(0, -moveSpeed, directions.up);
-    	hasMoved = true;
+		moveCharacter(0, -moveSpeed, directions.up);
+   		 hasMoved = true;
  	} else if (keyPresses.s) {
     	moveCharacter(0, moveSpeed, directions.down);
     	hasMoved = true;
-  	}
+ 	}
 
   	if (keyPresses.a) {
-    	moveCharacter(-moveSpeed, 0, directions.left);
-    	hasMoved = true;
+  		moveCharacter(-moveSpeed, 0, directions.left);
+   		hasMoved = true;
   	} else if (keyPresses.d) {
-    	moveCharacter(moveSpeed, 0, directions.right);
-    	hasMoved = true;
+   		moveCharacter(moveSpeed, 0, directions.right);
+   		hasMoved = true;
   	}
+	  	
+
+		
 
   	//hasInteracted é declarada no start-up, para não "actualizar"
   	//em cada step
@@ -360,6 +392,10 @@ function step(){
 		
 	}
 
+	
+	moveFolha(moveSpeed+1);
+	
+
 	//desenha tudo
 	//						        	Este 0 passa a CurrentDirection (Y na SpriteSheet)
 	drawFrame(cycleLoop[currentLoopIndex], 0, positionX, positionY);
@@ -372,28 +408,90 @@ function step(){
 //				Função de movimento (deltas) 				 *
 // 															 *
 //************************************************************
-function moveCharacter(deltaX, deltaY, direction) {
+function moveCharacter(deltaX, deltaY, direction) { 
 //posX/posY == canto topleft da char
 //minimo positionX é 0(esquerda), máximo é a largura da char+movespeed(delta)+largura do canvas
 
+
+//a func moveCharacter ficou um bocado grande, depois do projeto tento limpar um pouco
   if(positionX + deltaX > 0 && positionX+scaledWidth+deltaX< canvas.width){
-  	if(checkColision(deltaX, deltaY))
-  	{
-  		positionX += deltaX;
-  	}
-  }
+  	switch (mapId)
+	{
+			case 0: //case x,y,z -> mapas com folhas
+				//se não está na folha e tenta entrar, "snap" dentro dela
+				//para tirar o snap, ciclos "if" como o framecount, a 
+				//incrementar o moveSpeed até posX==posX?
+				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false)
+				{				
+					isInFolha=true;
+					positionX = folhaPosX;
+					//-tileSize para ela ficar com as pernitas dentro da folha
+					positionY = folhaPosY-tileSize;
+				}	
+				if(isInFolha)
+				{
+					//esta func chama a func checkColision, para saber se 
+					//"pode" sair da folha. se esta retornar true:
+					if(tryLeaveFolha(deltaX,deltaY))
+					{
+						isInFolha=false;
+						positionX += deltaX*(tileSize/2);					
+					}					
+				}		
+			case 1:
+				//corre sempre, mesmo na folha, sem break no case 0
+				//checka colision normalmente
+				if(checkColision(deltaX, deltaY))
+  				{
+  					positionX += deltaX;
+  				}
+  				break;
+		}			
+	}
+
   //ScaledHeight/2, para só detectar colisão nas "pernas"
   //metade para outer map, menos para sprite colision
+
+  //código relativo á folha é igual á anterior, mas com Y
   if(positionY+(scaledHeight/2) + deltaY > 0 && positionY+scaledHeight+ deltaY< canvas.height){
-  	if(checkColision(deltaX, deltaY))
-  	{
-  		positionY += deltaY;
-  	}
+  	switch (mapId)
+	{
+			case 0: 
+				
+				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false)
+				{
+					isInFolha=true;
+					positionX = folhaPosX;
+					positionY = folhaPosY-tileSize;
+				} 
+
+				if(isInFolha)
+				{
+					if(tryLeaveFolha(deltaX,deltaY))
+					{
+						isInFolha = false;
+						positionY += deltaY*(tileSize/2);				
+					}			
+				}		
+			case 1:
+				//checka colision normalmente
+				//percisa área de "escape"
+				if(checkColision(deltaX, deltaY))
+  				{
+  					positionY += deltaY;
+  				}
+  				break;
+		
+			
+	}
   }
+
   //checkDoor a cada incremento de posX/Y
   checkDoor();
+
+  //muda o Y da spriteSheet, para corresponder com o movimento
   currentDirection = direction;
-}
+  }
 
 //verifica se "colide" com passagens, dá trigger a mapChange
 function checkDoor(){
@@ -407,7 +505,7 @@ function checkDoor(){
   		positionX = newPosX;
   		positionY = newPosY;
 
-  		//TODO: implementar transacção de mapas (wipe, translate, smthing) ------------------***
+  		//TODO: implementar transacção de mapas visual (wipe, translate, smthing) ------------------***
   		setMapId(connectsTo);
 
 		}
@@ -417,7 +515,7 @@ function checkDoor(){
 function checkColision(deltaX, deltaY){
 
 	//conta estranha, mas apenas para "feel" de colisão correcta
-	let halfHeight = positionY+(scaledHeight/1.3)+3;
+	let halfHeight = positionY+(scaledHeight)-3;
 
 	let colideX = positionX+scaledWidth-3;
 	let colideY = positionY+scaledHeight -3;
@@ -427,12 +525,12 @@ function checkColision(deltaX, deltaY){
 	let check = true;
 	
 	//Object.keys é awsome, traduz todas as propriedades para uma array 
-	//de strings (keys = ["top","bottom",left...])
+	//de strings (keys = ["top","bottom","left",...])
 	let keys = Object.keys(mapBounds);
 	
 	keys.forEach((key, index) =>{
 
-		//atribui os valores em array a estas 4 vars
+		//atribui os valores da array a estas 4 vars
 		let [posX, posY, coliderWidth, coliderHeight] = mapBounds[key];
 		
 		if(positionX+deltaX < posX+coliderWidth &&
@@ -445,6 +543,7 @@ function checkColision(deltaX, deltaY){
 			}
 	});
 
+	//retorna true se NÃO houver colisão (não faz sentido mas ajuda-me na da folha)
 	return check;
 }
 //************************************************************
@@ -460,10 +559,11 @@ function checkInteract(){
 
 	switch(currentDirection){
 		case directions.up:
-			interactY -= 38; //interactBoxSize - TEMP, vai ser mais próxima do size de um tile
+		 //interactBoxSize - depois acerto o "valor mágico" para bom feel de contacto
+			interactY -= 38;
 			break;
 		case directions.down:
-			interactY += height + 38;
+			interactY += ScaledHeight + 38;
 			break;
 		case directions.left:
 			interactX -= 38;
@@ -508,7 +608,7 @@ function getInteraction(interactId){
 //				Funções keypress 							 *
 // 															 *
 //************************************************************
-//eventListeners
+//eventListeners adicionam a pressed key á array keyPresses
 window.addEventListener('keydown', keyDownListener, false);
 function keyDownListener(e){
 	keyPresses[e.key] = true;
@@ -518,6 +618,67 @@ window.addEventListener('keyup', keyUpListener, false);
 function keyUpListener(e){
 	keyPresses[e.key] = false;
 }
+
+//************************************************************
+//															 *
+//				Funcoes folha     							 *
+// 															 *
+//************************************************************
+
+
+//potencialmente, se o nº de folhas fôr maior, vai ser perciso
+//alterar esta func. por agora, hardcoded movement (circular)
+function moveFolha(delta){
+	
+	if(folhaPosY <= tileSize && folhaPosX > tileSize*4)
+	{
+		folhaPosX -= moveSpeed;
+	}
+	else if (folhaPosX <= tileSize*4 && folhaPosY <= tileSize*8)
+	{
+		folhaPosY +=moveSpeed;
+	}
+	else if (folhaPosY >= tileSize*8 && folhaPosX <= tileSize*7)
+	{
+		folhaPosX += moveSpeed;
+	}
+	else if (folhaPosX >= tileSize*7 && folhaPosY >= tileSize)
+	{
+		folhaPosY -= moveSpeed;
+	}
+	
+}
+
+//como o check de interact, checka se o movement vai colidir com a folha
+function checkColisionFolha(deltaX, deltaY){
+	//conta estranha, mas apenas para "feel" de colisão correcta
+	let halfHeight = positionY+(scaledHeight/1.3)+3;
+
+	if(positionX+deltaX < folhaPosX+tileSize &&
+		   positionX+scaledWidth+deltaX > folhaPosX &&
+		   halfHeight+deltaY < folhaPosY+tileSize &&
+		   positionY+scaledHeight+deltaY > folhaPosY)
+			{				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+
+}
+//func faz um checkColision, confirma se player pode sair ou não
+function tryLeaveFolha(deltaX,deltaY){	
+	if(checkColision((deltaX/2)*tileSize,(deltaY/2)*tileSize))
+	{		
+		return true;
+	}
+	else
+	{				
+		return false;
+	}	
+}
+
 //************************************************************
 //															 *
 //				Fim do script     							 *
@@ -529,8 +690,74 @@ function keyUpListener(e){
 //				<área temp> 								 *
 // 															 *
 //************************************************************
-
 /*
+//se está nos bounds exteriores do mapa
+if(positionX + deltaX > 0 && positionX+scaledWidth+deltaX< canvas.width){
+  	
+  	//se mapa tem folha
+	switch (mapId)
+	{
+		case mapaComFolha:
+		{
+			case -mapIdComFolhas: 
+				//se não está na folha e tenta entrar, "snap" dentro dela
+				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false)
+				{
+					//incrementa o mesmo que a folha
+					//vai dar "salto"?
+					positionX = folhaX;
+					//estes separados
+					positionY = folhaY;
+
+					//trigger "isInFolha", para poder sair
+					isInFolha=true;
+				} 
+				//se está na folha, mantém a speed da mesma
+				else if(checkColisionEscapeFolha(deltaX, deltaY) == false && isInFolha)
+				{
+					positionX = folhaX+tileSize+3;
+				}
+				//se está na folha e pode sair
+				else if(checkColisionEscapeFolha(deltaX, deltaY) && isInFolha)
+				{
+					positionX += tileSize;
+				}
+				break;
+			case -mapIdSemFolhas;
+				//checka colision normalmente
+				//percisa área de "escape"
+				if(checkColision(deltaX, deltaY))
+  				{
+  					positionX += deltaX;
+  				}
+  				break;
+		}
+			
+	}
+  	
+ }
+
+function checkColisionFolha(deltaX, deltaY){
+	//conta estranha, mas apenas para "feel" de colisão correcta
+	let halfHeight = positionY+(scaledHeight/1.3)+3;
+
+	if(positionX+deltaX < folhaX+tileSize &&
+		   positionX+scaledWidth+deltaX > folhaX &&
+		   halfHeight+deltaY < folhaY+tileSize &&
+		   positionY+scaledHeight+deltaY > folhaY)
+			{
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+
+}
+
+
+
 function mapBounds(){
 		mapChange();
 		positionX = 0;
