@@ -276,10 +276,11 @@ function drawFrame(frameX, frameY, canvasX, canvasY){
 	//Primeiro o background
 		ctx.drawImage(map,0,0);
 	//depois plataformas (se aplicável)	
+	
 		ctx.drawImage(folha,
 						0,0, tileSize,tileSize,			
 						folhaPosX,folhaPosY,tileSize,tileSize);			
-		
+			
 	//depois a character
 		ctx.drawImage(img,
 						frameX * width, frameY * height, width, height,
