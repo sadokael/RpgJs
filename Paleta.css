@@ -1,7 +1,12 @@
-canvas {
-  border: 1px solid black;
+body {
+  margin: 0;
+  display: flex;
 }
 
+.draws{
+	border: 10px solid black;
+	border-radius: 5%;
+}
 
 /*https://developer.ibm.com/technologies/web-development/tutorials/wa-canvashtml5layering/*/
 /*Para permitir overlay stack das canvas*/
@@ -26,17 +31,11 @@ canvas {
   /*Esta porra para ficar com o mesmo aspect ratio*/
  image-rendering: pixelated;
 }
-/*
-let map = new Image();	
 
-map.onload = function(){
-	map.src = 'SpriteSheet/testmap.png';
-};
-
-
-
-
-
-
-
-}*/
+#divtexto{
+	position: absolute;
+	left: 140px; top: 530px; z-index: 3;
+	width:400px;
+	height:170px;
+	text-align: center;
+}

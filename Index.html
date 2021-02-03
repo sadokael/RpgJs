@@ -9,12 +9,18 @@
 </head>
 <body>
   <!-- Area do jogo -->
- <canvas id="background" class="pixel-art" width="500" height="300"
- 			style="left: 0; top: 0; z-index: 0; position: absolute;">
+ <canvas id="background" class="pixel-art draws" width="672" height="560"
+ 			style="left: 200px; top: 100px; z-index: 0; position: absolute;">
  </canvas>
- <canvas id="foreground" class="pixel-art" width="500" height="300"
- 			style="left: 0; top: 0; z-index: 1; position: absolute;">
+ <canvas id="foreground" class="pixel-art draws" width="672" height="560"
+ 			style="left: 200px; top: 100px; z-index: 1; position: absolute;">
  </canvas>
+ <canvas id="textbox" class="pixel-art" width="672" height="186" 
+ 			style="left: 210px; top: 472px; z-index: 1; position: absolute; display: none; background-color: transparent;">
+ </canvas>
+<div id="divtexto">
+	<p id="texto"></p>
+</div>
 
 <script>
 
@@ -30,6 +36,9 @@ const scale = 1;
 //final = w: 38 h: 32x2
 const width = 56; 
 const height = 104;
+
+//jQuery para o texto
+//
 
 //largura/altura dos tiles
 //se no final for o mesmo size, roll-up numa única var
@@ -74,7 +83,7 @@ let debugCount=0;
 //				~Variáveis~									 *
 // 															 *
 //************************************************************
-//Posição da sprite em relação ao canvas
+//Posição da sprite em relação ao canvas de início
 let positionX = tileSize*2;
 let positionY = tileSize*2;
 
@@ -85,6 +94,7 @@ let currentDirection = directions.down;
 
 //Declarado de início, para não "actualizar"
 let hasInteracted = false;
+let waitInteract = false;
 
 let keyPresses = {};
 
@@ -94,26 +104,28 @@ let keyPresses = {};
 // 															 *
 //************************************************************
 
-//no final cleanup, dar rollup ás atribuições na função SetMapId()
-//para ficarem só os "let"s
 let map = new Image();
 map.src = 'SpriteSheet/testeFolha.png';
 
-//era boa ideia criar objectos com Image att e Array att, mas...
-let fore = new Image();
-//fore.src = 'SpriteSheet/testeFolhaFore.png';
 let mapId = 0;
 let mapBounds ={};
-//setMapBounds(0);
 
 let mapPassages ={};
-//setMapPassages(0);
 
 let mapInteracts ={};
-//setMapInteracts(0);
+
+let fore = new Image();
+let text = new Image();
+text.src = 'SpriteSheet/textBoxTeste.png';
 
 //canvas para o que apareçe "á frente" da char
 let canvasFluff = document.getElementById('foreground');
+let ctxfore = canvasFluff.getContext('2d');
+
+//canvas para a textBox
+let textBox = document.getElementById('textbox');
+let ctxtext = textBox.getContext('2d');
+
 
 //canvas para background e char
 let canvas = document.getElementById('background');
@@ -128,7 +140,6 @@ let img = new Image();
 
 let folha = new Image();
 
-
 //posX/Y da folha, para efeitos debug. final terá uma func
 //que atribui a pos no mapLoad
 let folhaPosX = tileSize*6;
@@ -136,7 +147,7 @@ let folhaPosY = tileSize;
 let isInFolha = false;
 
 
-
+//innit aos src
 setMapId(0);
 //************************************************************
 //															 *
@@ -146,11 +157,7 @@ setMapId(0);
 
 //primeiro fill, á partida sai na versão final
 function fillCanvas(map){
-	canvas.width = map.width;
-	canvas.height = map.height;
-	canvasFluff.width = map.width;
-	canvasFluff.height = map.height;
-	ctx.drawImage(map,0,0);
+		ctx.drawImage(map,0,0);
 }
 
 //kickstart também
@@ -199,7 +206,7 @@ function setMapSrc(mapId){
 	{
 		case 0:
 			map.src = 'SpriteSheet/testeFolha.png';
-			fore.src = 'SpriteSheet/testeFolhaFore.png';
+			//fore.src = 'SpriteSheet/testeFolhaFore.png';
 			folha.src= 'SpriteSheet/folhaBase.png';
 			break;
 		case 1:
@@ -219,7 +226,7 @@ function setMapInteracts(mapId){
 	{
 		//mapInteracts array per interact = (posX,posY,width,height,interactsWITH)
 		case 0:
-			mapInteracts.interact1 = [];
+			mapInteracts.interact1 = [tileSize*3, tileSize*8,tileSize,tileSize,0];
 			mapInteracts.interact2 = [];
 			break;
 		case 1:
@@ -282,9 +289,11 @@ function drawFrame(frameX, frameY, canvasX, canvasY){
 		ctx.drawImage(img,
 						frameX * width, frameY * height, width, height,
 						canvasX, canvasY, scaledWidth, scaledHeight);
-	//e depois o fluff
-		ctx.drawImage(fore,0,0);
+	//depois o fluff
+		ctxfore.drawImage(fore,0,0);
 
+	//depois o texto
+		ctxtext.drawImage(text,0,0);
 }
 //************************************************************
 //															 *
@@ -306,13 +315,6 @@ loadImage();
 	Função save salva:
 	mapID
 	positionX/Y
-	_"Inventory: true ou false"
-	...extras
-
-	Falta potencialmente implementar
-	movable objects, se sim, gravar posX/Y deles
-	(junto com bool hasMoved Y/N) 
-
 */
 //************************************************************
 // 															 *
@@ -322,8 +324,9 @@ loadImage();
 function step(){
 	ctx.clearRect(0,0, canvas.width, canvas.height);
 
-
-	//hasMoved é re-declarada a false em cada instância step
+	if(!waitInteract)
+	{
+		//hasMoved é re-declarada a false em cada instância step
 	let hasMoved = false;
 	
 	//se estiver na folha, quer mexa quer não, a posição dela é 
@@ -391,6 +394,9 @@ function step(){
 		currentLoopIndex = 0;
 		
 	}
+	}
+
+	
 
 	if(mapId == 0)
 	{
@@ -566,7 +572,7 @@ function checkInteract(){
 			interactY -= 38;
 			break;
 		case directions.down:
-			interactY += ScaledHeight + 38;
+			interactY += scaledHeight + 38;
 			break;
 		case directions.left:
 			interactX -= 38;
@@ -598,13 +604,26 @@ function checkInteract(){
 
 //gere o tipo de interação (prompt com diálogo, get/set item)
 function getInteraction(interactId){
+
+	waitInteract=true;
+
+	toggleTextBox();
+
 	switch(interactId)
 	{
 		case 0:
-			console.log("Interagio" + debugCount);
-			debugCount++;
+			document.getElementById('texto').innerHTML = "teste";
+			
 			break;
 	}
+
+	
+	setTimeout(function(){
+		document.getElementById('texto').innerHTML = "";
+		toggleTextBox();
+		waitInteract=false;
+	}, 4500);
+	
 }
 //************************************************************
 //															 *
@@ -684,6 +703,18 @@ function tryLeaveFolha(deltaX,deltaY){
 
 //************************************************************
 //															 *
+//				TextBox 	     							 *
+// 															 *
+//************************************************************
+function toggleTextBox() {
+   if (textBox.style.display === "none") {
+    textBox.style.display = "block";
+  } else {
+    textBox.style.display = "none";
+  }
+}
+//************************************************************
+//															 *
 //				Fim do script     							 *
 // 															 *
 //************************************************************
@@ -693,84 +724,7 @@ function tryLeaveFolha(deltaX,deltaY){
 //				<área temp> 								 *
 // 															 *
 //************************************************************
-/*
-//se está nos bounds exteriores do mapa
-if(positionX + deltaX > 0 && positionX+scaledWidth+deltaX< canvas.width){
-  	
-  	//se mapa tem folha
-	switch (mapId)
-	{
-		case mapaComFolha:
-		{
-			case -mapIdComFolhas: 
-				//se não está na folha e tenta entrar, "snap" dentro dela
-				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false)
-				{
-					//incrementa o mesmo que a folha
-					//vai dar "salto"?
-					positionX = folhaX;
-					//estes separados
-					positionY = folhaY;
 
-					//trigger "isInFolha", para poder sair
-					isInFolha=true;
-				} 
-				//se está na folha, mantém a speed da mesma
-				else if(checkColisionEscapeFolha(deltaX, deltaY) == false && isInFolha)
-				{
-					positionX = folhaX+tileSize+3;
-				}
-				//se está na folha e pode sair
-				else if(checkColisionEscapeFolha(deltaX, deltaY) && isInFolha)
-				{
-					positionX += tileSize;
-				}
-				break;
-			case -mapIdSemFolhas;
-				//checka colision normalmente
-				//percisa área de "escape"
-				if(checkColision(deltaX, deltaY))
-  				{
-  					positionX += deltaX;
-  				}
-  				break;
-		}
-			
-	}
-  	
- }
-
-function checkColisionFolha(deltaX, deltaY){
-	//conta estranha, mas apenas para "feel" de colisão correcta
-	let halfHeight = positionY+(scaledHeight/1.3)+3;
-
-	if(positionX+deltaX < folhaX+tileSize &&
-		   positionX+scaledWidth+deltaX > folhaX &&
-		   halfHeight+deltaY < folhaY+tileSize &&
-		   positionY+scaledHeight+deltaY > folhaY)
-			{
-				
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-
-}
-
-
-
-function mapBounds(){
-		mapChange();
-		positionX = 0;
-		positionY = 0;
-}
-
-function mapChange(){
-	map.src = 'SpriteSheet/testmap2.png';
-}
-*/
 //************************************************************
 //															 *
 //				</área temp> 								 *
