@@ -38,7 +38,7 @@ const width = 56;
 const height = 104;
 
 //jQuery para o texto
-//
+//https://css-tricks.com/snippets/css/typewriter-effect/
 
 //largura/altura dos tiles
 //se no final for o mesmo size, roll-up numa única var
@@ -87,15 +87,24 @@ let debugCount=0;
 let positionX = tileSize*2;
 let positionY = tileSize*2;
 
+//linha da spriteSheet
 let currentLoopIndex = 0;
+
+//var para gerir "fps's"
 let frameCount = 0;
 
+//tempo de leitura da TextBox
+let timeoutTime = 4500;
+
+//coluna da spriteSheet
 let currentDirection = directions.down;
 
 //Declarado de início, para não "actualizar"
 let hasInteracted = false;
 let waitInteract = false;
 
+
+//array que guarda key inputs
 let keyPresses = {};
 
 //************************************************************
@@ -107,7 +116,9 @@ let keyPresses = {};
 let map = new Image();
 map.src = 'SpriteSheet/testeFolha.png';
 
+//id que define map src, fore src, mapbounds, e tudo mais
 let mapId = 0;
+
 let mapBounds ={};
 
 let mapPassages ={};
@@ -136,8 +147,10 @@ map.onload = function(){
 	fillCanvas(map);
 }
 
+//Personagem
 let img = new Image();
 
+//nenufar
 let folha = new Image();
 
 //posX/Y da folha, para efeitos debug. final terá uma func
@@ -324,6 +337,7 @@ loadImage();
 function step(){
 	ctx.clearRect(0,0, canvas.width, canvas.height);
 
+	//parte de movimento só corre se a textBox não estiver activa
 	if(!waitInteract)
 	{
 		//hasMoved é re-declarada a false em cada instância step
@@ -566,19 +580,21 @@ function checkInteract(){
 	let interactX = positionX;
 	let interactY = positionY;
 
+	let interactBoxSize = 10;
+
 	switch(currentDirection){
 		case directions.up:
 		 //interactBoxSize - depois acerto o "valor mágico" para bom feel de contacto
-			interactY -= 38;
+			interactY -= interactBoxSize;
 			break;
 		case directions.down:
-			interactY += scaledHeight + 38;
+			interactY += scaledHeight + interactBoxSize;
 			break;
 		case directions.left:
-			interactX -= 38;
+			interactX -= interactBoxSize;
 			break;
 		case directions.right:
-			interactX += width + 38;
+			interactX += scaledWidth + interactBoxSize;
 			break;
 	}
 
@@ -604,25 +620,28 @@ function checkInteract(){
 
 //gere o tipo de interação (prompt com diálogo, get/set item)
 function getInteraction(interactId){
-
+	//bloqueia o movimento enquanto a textBox estiver activa
 	waitInteract=true;
-
+	document.getElementById('divtexto').classList.add("typewriter");
+	//activa a textBox
 	toggleTextBox();
 
+	//define o texto no <p>
 	switch(interactId)
 	{
 		case 0:
-			document.getElementById('texto').innerHTML = "teste";
-			
+			document.getElementById('texto').innerHTML = "Lorem ipsum dolor sit amet.";
 			break;
 	}
 
 	
+	//timeout para ter tempo de lêr o texto
 	setTimeout(function(){
-		document.getElementById('texto').innerHTML = "";
 		toggleTextBox();
+		document.getElementById('texto').innerHTML = "";
+		document.getElementById('divtexto').classList.remove("typewriter");
 		waitInteract=false;
-	}, 4500);
+	}, timeoutTime);
 	
 }
 //************************************************************
