@@ -30,7 +30,7 @@
 // 															 *
 //************************************************************
 //scale para a pixel-art ("pixel-size")
-const scale = 1;
+const scale = 0.8;
 
 //largura/altura da sprite
 //final = w: 38 h: 32x2
@@ -75,6 +75,12 @@ const passageParams = {
 	passHeight: 3,
 	connectsTo: 4,
 }
+
+//elemento <p>
+const texto = document.getElementById('texto');
+
+//elemento <div>
+const divTexto = document.getElementById('divtexto');
 
 //Temp debug stuff
 let debugCount=0;
@@ -152,6 +158,11 @@ let img = new Image();
 
 //nenufar
 let folha = new Image();
+
+let folhasPos={
+	//para cada, [posX, posY, isInFolha, mapId]
+	//folha1: [tileSize*6, tileSize, false, 0];
+}
 
 //posX/Y da folha, para efeitos debug. final terá uma func
 //que atribui a pos no mapLoad
@@ -622,7 +633,9 @@ function checkInteract(){
 function getInteraction(interactId){
 	//bloqueia o movimento enquanto a textBox estiver activa
 	waitInteract=true;
-	document.getElementById('divtexto').classList.add("typewriter");
+
+	//adiciona a class typewriter ao elemento (para começar do 0)
+	divTexto.classList.add("typewriter");
 	//activa a textBox
 	toggleTextBox();
 
@@ -630,16 +643,23 @@ function getInteraction(interactId){
 	switch(interactId)
 	{
 		case 0:
-			document.getElementById('texto').innerHTML = "Lorem ipsum dolor sit amet.";
+			texto.innerHTML = "Lorem ipsum dolor sit amet.";
 			break;
 	}
 
 	
 	//timeout para ter tempo de lêr o texto
 	setTimeout(function(){
+		//esconde a textBox
 		toggleTextBox();
-		document.getElementById('texto').innerHTML = "";
-		document.getElementById('divtexto').classList.remove("typewriter");
+
+		//limpa o texto no <p>
+		texto.innerHTML = "";
+
+		//remove a class (para começar de ínicio para a próxima call)
+		divTexto.classList.remove("typewriter");
+
+		//enable do movimento na função step
 		waitInteract=false;
 	}, timeoutTime);
 	
@@ -669,24 +689,31 @@ function keyUpListener(e){
 
 //potencialmente, se o nº de folhas fôr maior, vai ser perciso
 //alterar esta func. por agora, hardcoded movement (circular)
-function moveFolha(delta){
+function moveFolha(delta, mapId){
+	switch (mapId)
+	{
+		case 0:
+			if(folhaPosY <= tileSize && folhaPosX > tileSize*4)
+			{
+				folhaPosX -= moveSpeed;
+			}
+			else if (folhaPosX <= tileSize*4 && folhaPosY <= tileSize*8)
+			{
+				folhaPosY +=moveSpeed;
+			}
+			else if (folhaPosY >= tileSize*8 && folhaPosX <= (tileSize*7)-1)
+			{
+				folhaPosX += moveSpeed;
+			}
+			else if (folhaPosX >= tileSize*7 && folhaPosY >= tileSize)
+			{
+				folhaPosY -= moveSpeed;
+			}
+			break;
+		case 1:
+			break;
+	}
 	
-	if(folhaPosY <= tileSize && folhaPosX > tileSize*4)
-	{
-		folhaPosX -= moveSpeed;
-	}
-	else if (folhaPosX <= tileSize*4 && folhaPosY <= tileSize*8)
-	{
-		folhaPosY +=moveSpeed;
-	}
-	else if (folhaPosY >= tileSize*8 && folhaPosX <= (tileSize*7)-1)
-	{
-		folhaPosX += moveSpeed;
-	}
-	else if (folhaPosX >= tileSize*7 && folhaPosY >= tileSize)
-	{
-		folhaPosY -= moveSpeed;
-	}
 	
 }
 
