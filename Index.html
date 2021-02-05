@@ -52,7 +52,7 @@ const scaledHeight = scale * height;
 const moveSpeed = 2;
 
 //ciclo com as linhas na spriteSheet
-const cycleLoop = [0, 0, 0, 0];
+const cycleLoop = [0, 1, 0, 1];
 
 //quantidade de frames por draw
 const frameLimit = 12;
@@ -578,7 +578,7 @@ function checkColision(deltaX, deltaY){
 	//conta estranha, mas apenas para "feel" de colisão correcta
 	let halfHeight = positionY+(scaledHeight)-15;
 
-	let colideX = positionX+scaledWidth-3;
+	let colideX = positionX+scaledWidth-5;
 	let colideY = positionY+scaledHeight -3;
 
 	//check declarado fora do ciclo forEach, caso algum acuse false, não
