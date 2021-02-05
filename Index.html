@@ -90,14 +90,16 @@ let debugCount=0;
 // 															 *
 //************************************************************
 //Posição da sprite em relação ao canvas, de início
-let positionX = tileSize*2;
-let positionY = tileSize*2;
+let positionX = 0;
+let positionY = tileSize*1;
 
 //linha da spriteSheet
 let currentLoopIndex = 0;
 
 //var para gerir "fps's"
 let frameCount = 0;
+
+let graceTime=0;
 
 //tempo de leitura da TextBox
 let timeoutTime = 4500;
@@ -158,11 +160,15 @@ let img = new Image();
 
 //nenufar
 let folha = new Image();
+folha.src= 'SpriteSheet/nenufar.png';
 
 var folhasPos = new Array();
-//para cada, [posX, posY, folhaId, mapa]
+//para cada, [posX, posY, folhaId(== index no folhasPos), mapa]
 folhasPos[0] = new Array(tileSize*6, tileSize, 0, 6);
 folhasPos[1] = new Array(tileSize*6, tileSize, 1, 0);
+folhasPos[2] = new Array(tileSize*3, tileSize*3, 2, 7);
+folhasPos[3] = new Array(tileSize*3, tileSize*5, 3, 7);
+
 
 let currFolhaId=-1; //não-folha
 
@@ -170,7 +176,7 @@ let isInFolha=false;
 
 //innit aos src
 //************************************
-setMapId(0);
+setMapId(7); //Começa no 1
 //************************************
 
 //************************************************************
@@ -231,7 +237,7 @@ function setMapSrc(mapId){
 		case 0:
 			map.src = 'SpriteSheet/testeFolha.png';
 			//fore.src = 'SpriteSheet/testeFolhaFore.png';
-			folha.src= 'SpriteSheet/folhaBase.png';
+			
 			break;
 		case 1:
 			map.src = 'SpriteSheet/maptest1.png';
@@ -239,6 +245,10 @@ function setMapSrc(mapId){
 			break;
 		case 2:
 			map.src = 'SpriteSheet/testTiledMap.png';
+			fore.src = '';
+			break;
+		case 7:
+			map.src = 'SpriteSheet/map7.png';
 			fore.src = '';
 			break;
 	}
@@ -287,10 +297,20 @@ function setMapBounds(mapId){
 
 			break;
 
-		case 2:
+		case 7:
 			
+			mapBounds.top = [0, -tileSize, tileSize*12, tileSize*1];
+			mapBounds.left = [-tileSize, 0, tileSize*1, tileSize*10];
+			mapBounds.bottom = [0, tileSize*10, tileSize*12, tileSize*1];
+			mapBounds.right = [tileSize*12, 0, tileSize, tileSize*10];
+			mapBounds.waterTop = [tileSize*2,0,tileSize*8,tileSize*1];
+			mapBounds.waterM1 = [tileSize*3,0,tileSize*7,tileSize*5];
+			mapBounds.waterM2 = [tileSize*2,tileSize*2,tileSize*4,tileSize*8];
+			mapBounds.waterM3 = [tileSize*8,tileSize*1,tileSize*2,tileSize*7];
+			mapBounds.waterM4 = [tileSize*2,tileSize*6,tileSize*7,tileSize*4];
+			mapBounds.waterBot = [tileSize*2,tileSize*9,tileSize*8,tileSize*1];
 			break;
-
+			
 	}
 }
 //************************************************************
@@ -359,12 +379,16 @@ function step(){
 		//hasMoved é re-declarada a false em cada instância step
 	let hasMoved = false;
 	
+	if(!isInFolha)
+	{
+		graceTime++;
+	}
 	//se estiver na folha, quer mexa quer não, a posição dela é 
 	//relativa á folha
 	if(isInFolha)
 	{
 		positionX = folhasPos[currFolhaId][0];
-		positionY = folhasPos[currFolhaId][1]-tileSize;
+		positionY = folhasPos[currFolhaId][1]-(tileSize/0.7);
 	}
 	//movimento x/y
 	
@@ -453,28 +477,29 @@ function moveCharacter(deltaX, deltaY, direction) {
   if(positionX + deltaX > 0 && positionX+scaledWidth+deltaX< canvas.width){
   	switch (mapId)
 	{
-			case 0: //case x,y,z -> mapas com folhas
+			case 5,6,7: //case x,y,z -> mapas com folhas
 				//se não está na folha e tenta entrar, "snap" dentro dela
 				//para tirar o snap, ciclos "if" como o framecount, a 
 				//incrementar o moveSpeed até posX==posX?
-				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false)
+				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false && graceTime> 2)
 				{				
 					isInFolha=true;
-					break; //posso fazer isto? -----------------------------------------------------------***
+					
 				}	
-				if(isInFolha)
+				else if(isInFolha)
 				{
 					//esta func chama a func checkColision, para saber se 
 					//"pode" sair da folha. se esta retornar true:
 					if(tryLeaveFolha(deltaX,deltaY))
 					{
+						graceTime=0;
 						isInFolha=false;
 						currFolhaId=-1;//não-folha
 						positionX += deltaX*(tileSize/2);					
 					}					
 				}		
-			case 1:
-				//corre sempre, mesmo na folha, sem break no case 0
+			default:
+				//corre sempre, mesmo na folha, sem break no case anterior
 				//checka colision normalmente
 				if(checkColision(deltaX, deltaY))
   				{
@@ -491,24 +516,25 @@ function moveCharacter(deltaX, deltaY, direction) {
   if(positionY+(scaledHeight/2) + deltaY > 0 && positionY+scaledHeight+ deltaY< canvas.height){
   	switch (mapId)
 	{
-			case 0: 
+			case 5,6,7: 
 				
-				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false)
+				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false && graceTime> 2)
 				{
 					isInFolha=true;
-					currFolhaId=-1;//não-folha
-					break; //posso fazer isto? -----------------------------------------------------------***
+					
+					
 				} 
-
-				if(isInFolha)
+				else if(isInFolha)
 				{
 					if(tryLeaveFolha(deltaX,deltaY))
 					{
+						graceTime=0;
 						isInFolha = false;
+						currFolhaId=-1;//não-folha
 						positionY += deltaY*(tileSize/2);				
 					}			
 				}		
-			case 1:
+			default:
 				//checka colision normalmente
 				//percisa área de "escape"
 				if(checkColision(deltaX, deltaY))
@@ -717,6 +743,40 @@ for(let i=0; i<folhasPos.length;i++)
 					}
 					break;
 				case 2:
+					if(folhasPos[i][1] <= 0 && folhasPos[i][0] > tileSize*3)
+					{
+						folhasPos[i][0] -= moveSpeed;
+					}
+					else if (folhasPos[i][0] <= tileSize*3 && folhasPos[i][1] <= tileSize*4)
+					{
+						folhasPos[i][1] +=moveSpeed;
+					}
+					else if (folhasPos[i][1] >= tileSize*4 && folhasPos[i][0] <= (tileSize*8)-1)
+					{
+						folhasPos[i][0] += moveSpeed;
+					}
+					else if (folhasPos[i][0] >= tileSize*8 && folhasPos[i][1] >= 0)
+					{
+						folhasPos[i][1] -= moveSpeed;
+					}
+					break;
+				case 3:
+					if(folhasPos[i][1] <= tileSize*6 && folhasPos[i][0] > tileSize*3)
+					{
+						folhasPos[i][0] -= moveSpeed;
+					}
+					else if (folhasPos[i][0] <= tileSize*3 && folhasPos[i][1] <= tileSize*9)
+					{
+						folhasPos[i][1] +=moveSpeed;
+					}
+					else if (folhasPos[i][1] >= tileSize*9 && folhasPos[i][0] <= (tileSize*8)-1)
+					{
+						folhasPos[i][0] += moveSpeed;
+					}
+					else if (folhasPos[i][0] >= tileSize*8 && folhasPos[i][1] >= tileSize*6)
+					{
+						folhasPos[i][1] -= moveSpeed;
+					}
 					break;
 			}
 		}
@@ -728,6 +788,7 @@ function checkColisionFolha(deltaX, deltaY){
 	//conta estranha, mas apenas para "feel" de colisão correcta
 	let halfHeight = positionY+(scaledHeight/1.3)+3;
 
+	let check= false;
 
 	//para cada, [posX, posY, folhaId, mapa]
 	for(let i=0; i<folhasPos.length;i++)
@@ -740,14 +801,12 @@ function checkColisionFolha(deltaX, deltaY){
 		   		positionY+scaledHeight+deltaY > folhasPos[i][1]+3)
 			{		
 				currFolhaId=folhasPos[i][2];		
-				return true;
+				check = true;
 			}
-			else
-			{
-				return false;
-			}
+			
 		}			
 	}
+	return check;
 }
 //func faz um checkColision, confirma se player pode sair ou não
 function tryLeaveFolha(deltaX,deltaY){	
