@@ -5,7 +5,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
   <link rel="stylesheet" href="logica.js">
   <link rel="stylesheet" href="Paleta.css"> 
-  <title>Document</title>
+  <title>Jogo da Luana</title>
 </head>
 <body>
   <!-- Area do jogo -->
@@ -308,9 +308,9 @@ function setMapInteracts(mapId){
 			mapInteracts.interact2 = [];
 			break;
 		case 2:
-			mapInteracts.interact1 = [tileSize*3, tileSize*2, tileSize, tileSize,0];
-			mapInteracts.interact2 = [tileSize*5, tileSize*2, tileSize, tileSize,0];
-			mapInteracts.interact3 = [tileSize*7, tileSize*2, tileSize, tileSize,0];
+			mapInteracts.interact1 = [];
+			mapInteracts.interact2 = [];
+			mapInteracts.interact3 = [];
 			break;
 	}
 }
@@ -735,11 +735,11 @@ function checkInteract(){
 	keys.forEach((key, index) =>{
 		let [posX, posY, interactWidth, interactHeight, interactsWITH] = mapInteracts[key];
 
-		//weird enuff, foi-me mais fácil fazer esta de && e ||, do que a colision normal
-		if(interactX > posX && interactX < posX+interactWidth
-			|| interactX + width > posX && interactX + width < posX+interactWidth
-		 && interactY > posY && interactY< posY+interactHeight
-		 	|| interactY + height > posY && interactY + height < posY+interactHeight
+	
+		if(interactX < posX+interactWidth &&
+		 	interactX+scaledWidth > posX && 		
+		 	interactY < posY+interactHeight && 
+		  	interactY+scaledHeight > posY 
 		 ){
 
   			getInteraction(interactsWITH);
