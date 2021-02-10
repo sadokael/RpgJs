@@ -33,9 +33,9 @@
 const scale = 0.8;
 
 //largura/altura da sprite
-//final = w: 38 h: 32x2
+//final = w: 56 h: 56x2
 const width = 56; 
-const height = 104;
+const height = 112;
 
 //jQuery para o texto
 //https://css-tricks.com/snippets/css/typewriter-effect/
@@ -48,10 +48,10 @@ const tileSize = 56;
 const scaledWidth = scale * width;
 const scaledHeight = scale * height;
 
-//pixeis que a sprite viaja
+//pixeis que a sprite viaja p/frame
 const moveSpeed = 2;
 
-//ciclo com as linhas na spriteSheet
+//ciclo com as colunas na spriteSheet
 const cycleLoop = [0, 1, 0, 1];
 
 //quantidade de frames por draw
@@ -59,7 +59,7 @@ const frameLimit = 12;
 
 //Enums:
 
-//direções
+//direções - Rows na SpriteSheet
 const directions = {
    up: 2,
    down: 0,
@@ -108,7 +108,9 @@ let timeoutTime = 4500;
 let currentDirection = directions.down;
 
 //Declarado de início, para não "actualizar"
+//hasInteracted para não disparar interact várias vezes(grace time)
 let hasInteracted = false;
+//waitInteract bloqueia todo o movement while interacting
 let waitInteract = false;
 
 
@@ -121,19 +123,25 @@ let keyPresses = {};
 // 															 *
 //************************************************************
 
+//image do mapa
 let map = new Image();
-map.src = 'SpriteSheet/testeFolha.png';
 
 //id que define map src, fore src, mapbounds, e tudo mais
 let mapId = 0;
 
+//arrays com os bounds p/mapa, são declarados no setBounds
 let mapBounds ={};
 
+//arrays com as passagens p/mapa, são declarados no setPassages
 let mapPassages ={};
 
+//arrays com os interacts p/mapa, são declarados no setInteract
 let mapInteracts ={};
 
+//image do foreground
 let fore = new Image();
+
+//textbox
 let text = new Image();
 text.src = 'SpriteSheet/textBoxTeste.png';
 
@@ -150,7 +158,7 @@ let ctxtext = textBox.getContext('2d');
 let canvas = document.getElementById('background');
 let ctx = canvas.getContext('2d');
 
-//esta está só de kickstart, depois sai
+//esta está só de kickstart, depois sai (?)
 map.onload = function(){
 	fillCanvas(map);
 }
@@ -158,10 +166,12 @@ map.onload = function(){
 //Personagem
 let img = new Image();
 
-//nenufar
+//nenufar, src set no init, porque não muda
 let folha = new Image();
 folha.src= 'SpriteSheet/nenufar.png';
 
+//array de arrays com as folhas
+//objeto de arrays complicava no acesso
 var folhasPos = new Array();
 //para cada, [posX, posY, folhaId(== index no folhasPos), mapa]
 folhasPos[0] = new Array(tileSize*10, tileSize, 0, 5);
@@ -172,14 +182,15 @@ folhasPos[4] = new Array(tileSize*5, tileSize*0, 4, 8);
 folhasPos[5] = new Array(tileSize*7, tileSize*2, 5, 8);
 folhasPos[6] = new Array(tileSize*6, tileSize*7, 6, 8);
 
+//não-folha, para não prender o move
+let currFolhaId=-1; 
 
-let currFolhaId=-1; //não-folha
-
+//check se prende o move á folha ou não
 let isInFolha=false;
 
 //innit aos src
 //************************************
-setMapId(8); //Começa no 1
+setMapId(1); //Começa no 1
 //************************************
 
 //************************************************************
@@ -188,7 +199,7 @@ setMapId(8); //Começa no 1
 // 															 *
 //************************************************************
 
-//primeiro fill, á partida sai na versão final
+//primeiro fill, á partida sai na versão final (?)
 function fillCanvas(map){
 		ctx.drawImage(map,0,0);
 }
@@ -324,7 +335,7 @@ function setMapBounds(mapId){
 		//nomes todos boundX, para não ficarem artefactos
 		//tileSize*0 e *1 só para manter a formatação
 		//bounds vazios para não ficar para outros mapas
-		//mapa 6,7,8 com bounds top/bottom, por causa das folhas
+		//mapa 6,7,8 com bounds top/bottom, por causa das folhas (bound5,6)
 		//mapa 4 não tem bounds (WOOOOOOO)
 
 		case 1:
@@ -465,6 +476,7 @@ function step(){
 	
 	if(!isInFolha)
 	{
+		//graceTime é smoke&mirrors
 		graceTime++;
 	}
 	//se estiver na folha, quer mexa quer não, a posição dela é 
@@ -491,10 +503,7 @@ function step(){
    		moveCharacter(moveSpeed, 0, directions.right);
    		hasMoved = true;
   	}
-	  	
-
-		
-
+	  			
   	//hasInteracted é declarada no start-up, para não "actualizar"
   	//em cada step
   	if(keyPresses.j){
@@ -532,14 +541,11 @@ function step(){
 		currentLoopIndex = 0;
 		
 	}
-	}
-
+	} //fim do (!waitInteract)
 	
 	//corre sempre a moveFolha, o check por mapId está dentro da func
 	moveFolha(moveSpeed+1);	
 	
-	
-
 	//desenha tudo
 	//						        	Este 0 passa a CurrentDirection (Y na SpriteSheet)
 	drawFrame(cycleLoop[currentLoopIndex], 0, positionX, positionY);
