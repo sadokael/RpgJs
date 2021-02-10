@@ -16,7 +16,7 @@
  			style="left: 200px; top: 100px; z-index: 1; position: absolute;">
  </canvas>
  <canvas id="textbox" class="pixel-art" width="672" height="186" 
- 			style="left: 210px; top: 472px; z-index: 1; position: absolute; display: none; background-color: transparent;">
+ 			style="left: 210px; top: 472px; z-index: 3; position: absolute; display: none; background-color: transparent;">
  </canvas>
 <div id="divtexto">
 	<p id="texto"></p>
@@ -90,8 +90,8 @@ let debugCount=0;
 // 															 *
 //************************************************************
 //Posição da sprite em relação ao canvas, de início
-let positionX = tileSize*1;
-let positionY = tileSize*5;
+let positionX = tileSize*1+10;
+let positionY = tileSize*5-25;
 
 //linha da spriteSheet
 let currentLoopIndex = 0;
@@ -160,6 +160,7 @@ let ctx = canvas.getContext('2d');
 
 //esta está só de kickstart, depois sai (?)
 map.onload = function(){
+	
 	fillCanvas(map);
 }
 
@@ -190,7 +191,7 @@ let isInFolha=false;
 
 //innit aos src
 //************************************
-setMapId(1); //Começa no 1
+setMapId(7); //Começa no 1
 //************************************
 
 //************************************************************
@@ -215,52 +216,69 @@ function loadImage(){
 
 //function de tidy-up para dar trigger a todos os switch'es, na troca de mapa
 function setMapId(n){
+	waitInteract = true;
 	mapId = n;
 	setMapSrc(n);
 	setMapPassages(n);
 	setMapInteracts(n);
 	setMapBounds(n);
-	
+	waitInteract = false;
 }
 
 //parte "hardcode" de bounds/passagens/interactibles/src
 function setMapPassages(mapId){
-	
+
+	let keys = Object.keys(mapPassages);
+	keys.forEach((key, index) =>{
+		mapPassages[key] = [];
+	});		
 	switch(mapId)
 	{
 		//mapPassages array per passage = (posX,posY,width,height,connectsTO,new posX, new posY)
 		case 1:
-			mapPassages.passage1 = [tileSize*11, tileSize*0, tileSize*1, tileSize*7, 2, tileSize*1, tileSize*4+15];
+			mapPassages.passage1 = [tileSize*11, tileSize*0, tileSize*1, tileSize*7, 2, tileSize*1, tileSize*4];			
+			//mapPassages.interact1 = [tileSize*1,tileSize*5,tileSize*1,tileSize*1,40,0,0];
 			break;
 		case 2:
-			mapPassages.passage1 = [tileSize*0,tileSize*0,tileSize-30,tileSize*6, 1,tileSize*11-10,tileSize*4];
-			mapPassages.passage2 = [tileSize*8,tileSize*9,tileSize*4,tileSize,3,tileSize*9,tileSize];
-			mapPassages.passage3 = [tileSize*3,tileSize*9,tileSize*2,tileSize,3,tileSize*3,tileSize];
+			mapPassages.passage1 = [tileSize*0.3,tileSize*4,tileSize*0.3,tileSize*3, 1,tileSize*11-10,tileSize*4];
+			mapPassages.passage2 = [tileSize*8,tileSize*9.7,tileSize*4,tileSize,3,tileSize*9,tileSize];
+			mapPassages.passage3 = [tileSize*3,tileSize*9.7,tileSize*2,tileSize,3,tileSize*3,tileSize];
 			break;
 		case 3:
 			mapPassages.passage1 = [tileSize*8,0,tileSize*4,tileSize, 2, tileSize*9, tileSize*7];
 			mapPassages.passage2 = [tileSize*3,0,tileSize*2,tileSize, 2, tileSize*3, tileSize*8];
-			mapPassages.passage3 = [tileSize*6,tileSize*9,tileSize*2, tileSize, 4, tileSize*6,tileSize];
+			mapPassages.passage3 = [tileSize*6,tileSize*9.3,tileSize*2, tileSize, 4, tileSize*6,tileSize];
+			mapPassages.passage4 = [tileSize*0,tileSize*4,tileSize*0.3, tileSize*4, 31, tileSize*11,tileSize*5];
+			break;
+		case 31:
+			mapPassages.passage1 = [tileSize*11,tileSize*4,tileSize*1,tileSize*4, 3, tileSize*1.3, tileSize*5];
 			break;
 		case 4:
-			mapPassages.passage1 = [tileSize*6,0,tileSize*2, tileSize, 3, tileSize*6,tileSize*8-20];
-			mapPassages.passage2 = [tileSize*11-10,tileSize*3,tileSize,tileSize*3, 5,tileSize,tileSize*5];
+			mapPassages.passage1 = [tileSize*5,tileSize*0.3,tileSize*2, tileSize, 3, tileSize*6,tileSize*8];
+			mapPassages.passage2 = [tileSize*11,tileSize*3,tileSize,tileSize*3, 5,tileSize*1,tileSize*4];
 			break;
 		case 5:
-			mapPassages.passage1 = [tileSize*0,tileSize*4,tileSize*1,tileSize*3, 4, tileSize*10+10,tileSize*3];
+			mapPassages.passage1 = [tileSize*0,tileSize*4,tileSize*0.3,tileSize*3, 4, tileSize*10,tileSize*4];
 			mapPassages.passage2 = [tileSize*11,tileSize*4,tileSize*1,tileSize*3, 6, tileSize*1, tileSize*4];
 			break;
 		case 6:
-			mapPassages.passage1 = [tileSize*0,tileSize*4,tileSize*1,tileSize*2, 5, tileSize*10, tileSize*4];
+			mapPassages.passage1 = [tileSize*0,tileSize*4,tileSize*0.3,tileSize*2, 5, tileSize*10, tileSize*4];
 			mapPassages.passage2 = [tileSize*11, tileSize*0, tileSize*1, tileSize*3, 7, tileSize*1,tileSize*1];
 			break;
 		case 7:
-			mapPassages.passage1 = [tileSize*0,tileSize*0,tileSize*1,tileSize*3, 6, tileSize*10, tileSize*1];
+			mapPassages.passage1 = [tileSize*0,tileSize*0,tileSize*0.3,tileSize*3, 6, tileSize*10, tileSize*1];
 			mapPassages.passage2 = [tileSize*11,tileSize*7,tileSize*1,tileSize*3, 8, tileSize*1, tileSize* 8];
 			break;
 		case 8:
-			mapPassages.passage1 = [tileSize*0, tileSize*7, tileSize*1,tileSize*3, 7, tileSize*10, tileSize*7];
+			mapPassages.passage1 = [tileSize*0, tileSize*7, tileSize*0.3,tileSize*3, 7, tileSize*10, tileSize*7];
 			mapPassages.passage2 = [tileSize*11,tileSize*4, tileSize*1,tileSize*3, 9, tileSize*1, tileSize*5];
+			break;
+		case 9:
+			mapPassages.passage1 = [tileSize*0, tileSize*4, tileSize*0.3,tileSize*3, 8, tileSize*10, tileSize*4];
+			mapPassages.passage2 = [tileSize*5, tileSize*0, tileSize*4,tileSize*1, 10, tileSize*6.5, tileSize*8];
+			break;
+		case 10:
+			mapPassages.interact2 = [tileSize*6, tileSize*8, tileSize*5,tileSize*2, 41, 0, 0];
 			break;
 	}
 }
@@ -279,6 +297,10 @@ function setMapSrc(mapId){
 			break;
 		case 3:
 			map.src = 'SpriteSheet/map3.png';
+			fore.src = '';
+			break;
+		case 31:
+			map.src = 'SpriteSheet/map31.png';
 			fore.src = '';
 			break;
 		case 4:
@@ -301,33 +323,45 @@ function setMapSrc(mapId){
 			map.src = 'SpriteSheet/map8.png';
 			fore.src = '';
 			break;
+		case 9:
+			map.src = 'SpriteSheet/map9.png';
+			fore.src = '';
+			break;
+		case 10:
+			map.src = 'SpriteSheet/map10.png';
+			fore.src = 'SpriteSheet/fore10.png';
+			break;
 
 	}
 }
 
 function setMapInteracts(mapId){
-
+	for(var key in mapInteracts)
+	{
+		delete mapInteracts[key];
+	}
 	switch(mapId)
 	{
 		//mapInteracts array per interact = (posX,posY,width,height,interactsWITH)
 		case 0:
 			mapInteracts.interact1 = [];
-			mapInteracts.interact2 = [];
 			break;
 		case 1:
 			mapInteracts.interact1 = [];
-			mapInteracts.interact2 = [];
 			break;
 		case 2:
 			mapInteracts.interact1 = [];
-			mapInteracts.interact2 = [];
-			mapInteracts.interact3 = [];
 			break;
 	}
 }
 
 function setMapBounds(mapId){
 
+	//clear de bounds do mapa antigo
+	for(var key in mapBounds)
+	{
+		delete mapBounds[key];
+	}
 	switch(mapId)
 	{
 		//[posX, posY, coliderWidth, coliderHeight]
@@ -342,9 +376,7 @@ function setMapBounds(mapId){
 			mapBounds.bound1 = [tileSize*6,tileSize*0,tileSize*5,tileSize*2];
 			mapBounds.bound2 = [tileSize*9,tileSize*7,tileSize*3,tileSize*1];
 			mapBounds.bound3 = [tileSize*5,tileSize*8,tileSize*7,tileSize*2];
-			mapBounds.bound4 = [];
-			mapBounds.bound5 = [];
-			mapBounds.bound6 = [];
+			
 			break;
 		case 2:
 			mapBounds.bound1 = [tileSize*5,tileSize*3,tileSize*4,tileSize*3];
@@ -352,39 +384,36 @@ function setMapBounds(mapId){
 			mapBounds.bound3 = [tileSize*0,tileSize*6,tileSize*8,tileSize*2];
 			mapBounds.bound4 = [tileSize*0,tileSize*6,tileSize*3,tileSize*4];
 			mapBounds.bound5 = [tileSize*5,tileSize*8,tileSize*3,tileSize*3];
-			mapBounds.bound6 = [];
+			
 			break;
 		case 3:
 			mapBounds.bound1 = [tileSize*0,tileSize*0,tileSize*3,tileSize*2];
 			mapBounds.bound2 = [tileSize*0,tileSize*0,tileSize*2,tileSize*4];
 			mapBounds.bound3 = [tileSize*5,tileSize*0,tileSize*3,tileSize*4];
-			mapBounds.bound4 = [];
-			mapBounds.bound5 = [];
-			mapBounds.bound6 = [];
+			
+			break;
+		case 31:
+			mapBounds.bound1 = [tileSize*6,tileSize*0,tileSize*6,tileSize*1];
+			mapBounds.bound2 = [tileSize*7,tileSize*1,tileSize*5,tileSize*2];
+			mapBounds.bound3 = [tileSize*9,tileSize*3,tileSize*3,tileSize*1];
+			
 			break;
 		case 4:
-			mapBounds.bound1 = [];
-			mapBounds.bound2 = [];
-			mapBounds.bound3 = [];
-			mapBounds.bound4 = [];
-			mapBounds.bound5 = [];
-			mapBounds.bound6 = [];
+			
 			break;
 		case 5:
 			mapBounds.bound1 = [tileSize*1,tileSize*0,tileSize*10,tileSize*4];
 			mapBounds.bound2 = [tileSize*4,tileSize*4,tileSize*4,tileSize*3];
-			mapBounds.bound3 = [];
-			mapBounds.bound4 = [];
-			mapBounds.bound5 = [];
-			mapBounds.bound6 = [];
+			
 			break;
 		case 6:		
 			mapBounds.bound1 = [tileSize*3,tileSize*0,tileSize*6,tileSize*3];
 			mapBounds.bound2 = [tileSize*3,tileSize*0,tileSize*5,tileSize*6];
 			mapBounds.bound3 = [tileSize*4,tileSize*4,tileSize*5,tileSize*5];
 			mapBounds.bound4 = [tileSize*3,tileSize*7,tileSize*6,tileSize*2];
-			mapBounds.bound5 = [tileSize*0,tileSize*-1,tileSize*12,tileSize*1];
+			mapBounds.bound5 = [tileSize*0,tileSize*0,tileSize*12,tileSize*-3];
 			mapBounds.bound6 = [tileSize*0,tileSize*10,tileSize*12,tileSize*1];
+			
 			break;
 		case 7:
 			mapBounds.bound1 = [tileSize*2,tileSize*0,tileSize*8,tileSize*1];
@@ -393,7 +422,7 @@ function setMapBounds(mapId){
 			mapBounds.bound4 = [tileSize*8,tileSize*1,tileSize*2,tileSize*7];
 			mapBounds.bound5 = [tileSize*2,tileSize*6,tileSize*7,tileSize*4];
 			mapBounds.bound6 = [tileSize*2,tileSize*9,tileSize*8,tileSize*1];
-			mapBounds.bound7 = [tileSize*0,tileSize*-1,tileSize*12,tileSize*1];
+			mapBounds.bound7 = [tileSize*0,tileSize*0,tileSize*12,tileSize*-3];
 			mapBounds.bound8 = [tileSize*0,tileSize*10,tileSize*12,tileSize*1];
 			break;
 		case 8:
@@ -402,10 +431,43 @@ function setMapBounds(mapId){
 			mapBounds.bound3 = [tileSize*3,tileSize*2,tileSize*4,tileSize*8];
 			mapBounds.bound4 = [tileSize*5,tileSize*0,tileSize*4,tileSize*6];
 			mapBounds.bound5 = [tileSize*8,tileSize*1,tileSize*2,tileSize*9];
-			mapBounds.bound6 = [tileSize*0,tileSize*-1,tileSize*12,tileSize*1];
-			mapBounds.bound7 = [tileSize*0,tileSize*10,tileSize*12,tileSize*1];
-			break;
+			mapBounds.bound6 = [tileSize*0,tileSize*-5,tileSize*12,tileSize*5.2];
+			mapBounds.bound7 = [tileSize*0,tileSize*10,tileSize*12,tileSize*3];			
 			
+			break;
+		case 9:
+			mapBounds.bound1 = [tileSize*4,tileSize*5,tileSize*5,tileSize*2];
+			mapBounds.bound2 = [tileSize*5,tileSize*4,tileSize*3,tileSize*1];
+			mapBounds.bound3 = [tileSize*4,tileSize*7,tileSize*2,tileSize*1];
+			
+			break;
+		case 10:
+		//ai que dor
+			mapBounds.bound1 = [tileSize*1,tileSize*8,tileSize*1,tileSize*1];
+			mapBounds.bound2 = [tileSize*3,tileSize*8,tileSize*2,tileSize*1];
+			mapBounds.bound3 = [tileSize*10,tileSize*8,tileSize*1,tileSize*1];
+			mapBounds.bound4 = [tileSize*4,tileSize*7,tileSize*1,tileSize*2];
+			mapBounds.bound5 = [tileSize*6,tileSize*7,tileSize*3,tileSize*2];
+			mapBounds.bound6 = [tileSize*9,tileSize*7,tileSize*1,tileSize*1];
+			mapBounds.bound7 = [tileSize*0,tileSize*6,tileSize*1,tileSize*1];			
+			mapBounds.bound8 = [tileSize*2,tileSize*6,tileSize*2,tileSize*1];
+			mapBounds.bound9 = [tileSize*11,tileSize*6,tileSize*1,tileSize*1];
+			mapBounds.bound10 = [tileSize*5,tileSize*5,tileSize*1,tileSize*2];
+			mapBounds.bound11 = [tileSize*7,tileSize*5,tileSize*2,tileSize*1];
+			mapBounds.bound12 = [tileSize*8,tileSize*4,tileSize*1,tileSize*1];
+			mapBounds.bound13 = [tileSize*9,tileSize*3,tileSize*2,tileSize*1];
+			mapBounds.bound14 = [tileSize*10,tileSize*3,tileSize*1,tileSize*3];
+			mapBounds.bound15 = [tileSize*3,tileSize*3,tileSize*4,tileSize*1];			
+			mapBounds.bound16 = [tileSize*1,tileSize*2,tileSize*1,tileSize*4];
+			mapBounds.bound17 = [tileSize*3,tileSize*2,tileSize*1,tileSize*3];
+			mapBounds.bound18 = [tileSize*7,tileSize*2,tileSize*1,tileSize*1];
+			mapBounds.bound19 = [tileSize*2,tileSize*1,tileSize*1,tileSize*1];
+			mapBounds.bound20 = [tileSize*5,tileSize*1,tileSize*1,tileSize*1];
+			mapBounds.bound21 = [tileSize*8,tileSize*1,tileSize*3,tileSize*1];
+			mapBounds.bound22 = [tileSize*0,tileSize*0,tileSize*1,tileSize*1];
+			mapBounds.bound23 = [tileSize*4,tileSize*0,tileSize*3,tileSize*1];
+			break;
+						
 	}
 }
 //************************************************************
@@ -459,6 +521,7 @@ loadImage();
 	Função save salva:
 	mapID
 	positionX/Y
+	array diálogo disparado
 */
 //************************************************************
 // 															 *
@@ -574,7 +637,7 @@ function moveCharacter(deltaX, deltaY, direction) {
 				//para tirar o snap, ciclos "if" como o framecount, a 
 				//incrementar o moveSpeed até posX==posX?
 				
-				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false && graceTime > 0)
+				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false && graceTime > 5)
 				{				
 					isInFolha=true;
 				
@@ -615,11 +678,9 @@ function moveCharacter(deltaX, deltaY, direction) {
 			case 7:
 			case 8: 
 				
-				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false && graceTime> 2)
+				if(checkColisionFolha(deltaX, deltaY) && isInFolha == false && graceTime> 5)
 				{
-					isInFolha=true;
-					
-					
+					isInFolha=true;								
 				} 
 				else if(isInFolha)
 				{
@@ -652,6 +713,7 @@ function moveCharacter(deltaX, deltaY, direction) {
   }
 
 //verifica se "colide" com passagens, dá trigger a mapChange
+//reaproveitar para flagInteract também
 function checkDoor(){
 	let halfHeight = positionY+(scaledHeight)-15;
 	
@@ -662,12 +724,18 @@ function checkDoor(){
 		if(positionX > posX && positionX < posX+passWidth &&
 			halfHeight > posY && halfHeight< posY+passHeight){
   		
-  		positionX = newPosX;
-  		positionY = newPosY;
-
-  		//TODO: implementar transacção de mapas visual (wipe, translate, smthing) ------------------***
-  		setMapId(connectsTo);
-
+			//connectsTo reaproveitada para flags de interact
+  			if(connectsTo<39)
+  			{
+	  			positionX = newPosX;
+  				positionY = newPosY;
+  				
+  				setMapId(connectsTo);
+  			}
+  			else
+  			{ 		
+  				getInteraction(connectsTo);  					  			  			
+  			}
 		}
 	});		
 }
@@ -675,10 +743,10 @@ function checkDoor(){
 function checkColision(deltaX, deltaY){
 
 	//conta estranha, mas apenas para "feel" de colisão correcta
-	let halfHeight = positionY+(scaledHeight)-15;
+	let halfHeight = positionY+(scaledHeight/2)+10;
 
-	let colideX = positionX+scaledWidth-5;
-	let colideY = positionY+scaledHeight -3;
+	let colideX = positionX+scaledWidth-20;
+	let colideY = positionY+scaledHeight-10;
 
 	//check declarado fora do ciclo forEach, caso algum acuse false, não
 	//muda até checkColision voltar a ser called
@@ -693,7 +761,7 @@ function checkColision(deltaX, deltaY){
 		//atribui os valores da array a estas 4 vars
 		let [posX, posY, coliderWidth, coliderHeight] = mapBounds[key];
 		
-		if(positionX+deltaX < posX+coliderWidth &&
+		if((positionX+20)+deltaX < posX+coliderWidth &&
 		   colideX+deltaX > posX &&
 		   halfHeight+deltaY < posY+coliderHeight &&
 		   colideY+deltaY > posY)
@@ -766,10 +834,19 @@ function getInteraction(interactId){
 	toggleTextBox();
 
 	//define o texto no <p>
+	//>x (20) são flags de interact (só corre 1 vez)
 	switch(interactId)
 	{
 		case 0:
-			texto.innerHTML = "Lorem ipsum dolor sit amet.";
+			texto.innerHTML = "Oh não, perdi meu cachorro!";
+			break;
+		case 40:
+			texto.innerHTML = "Lorem ipsum dolor sit amet. Inicial";
+			mapPassages.interact1 = [];
+			break;
+		case 41:
+			texto.innerHTML = "No way back!";
+			mapPassages.interact2 = [];
 			break;
 	}
 
@@ -962,7 +1039,7 @@ for(let i=0; i<folhasPos.length;i++)
 //como o check de interact, checka se o movement vai colidir com a folha
 function checkColisionFolha(deltaX, deltaY){
 	//conta estranha, mas apenas para "feel" de colisão correcta
-	let halfHeight = positionY+(scaledHeight/1.3)+3;
+	let halfHeight = positionY+(scaledHeight/2);
 
 	let check= false;
 
@@ -971,10 +1048,10 @@ function checkColisionFolha(deltaX, deltaY){
 	{
 		if(folhasPos[i][3] == mapId)
 		{
-			if(positionX+deltaX < folhasPos[i][0]+tileSize-3 &&
-		   		positionX+scaledWidth+deltaX > folhasPos[i][0]+3 &&
-		   		halfHeight+deltaY < folhasPos[i][1]+tileSize-3 &&
-		   		positionY+scaledHeight+deltaY > folhasPos[i][1]+3)
+			if(positionX+deltaX < folhasPos[i][0]+tileSize &&
+		   		positionX+scaledWidth+deltaX > folhasPos[i][0] &&
+		   		halfHeight+deltaY < folhasPos[i][1]+tileSize &&
+		   		positionY+scaledHeight+deltaY > folhasPos[i][1])
 			{		
 				currFolhaId=folhasPos[i][2];		
 				check = true;
@@ -1019,6 +1096,7 @@ function toggleTextBox() {
 //				<área temp> 								 *
 // 															 *
 //************************************************************
+
 
 //************************************************************
 //															 *
