@@ -1,14 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
-  <link rel="stylesheet" href="logica.js">
-  <link rel="stylesheet" href="Paleta.css"> 
-  <title>Jogo da Luana</title>
+ <meta charset="UTF-8">
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
+ <title>Jogo da Luana</title>
+ <style>
+ body {
+  margin: 0;
+  display: flex;
+  background-color: #4d2600;
+}
+.draws{
+	border: 10px solid black;
+	border-radius: 5%;
+}
+#viewport {  
+    position: relative;
+}
+#viewport canvas { 
+    background-color: transparent;
+}
+.pixel-art {
+  /*Esta porra para ficar com o mesmo aspect ratio*/
+ image-rendering: pixelated;
+}
+#divtexto{
+	position: absolute;
+	left: 250px; top: 550px; z-index: 3;
+	width:400px;
+	height:190px;
+	text-align: center;
+	font-family: 'Waiting for the Sunrise', cursive; 
+  	font-size:15px; 
+  	letter-spacing: 6px; 
+ 	font-weight: bold;
+}
+#divintruct{
+	position: absolute;
+	left: 892px; top: 300px; z-index: 3;
+	width:200px;
+	height:220px;
+	text-align: center;
+	font-family: 'Waiting for the Sunrise', cursive; 
+  	font-size:15px; 
+  	letter-spacing: 6px; 
+ 	font-weight: bold;
+}
+/* The typing effect */
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+.typewriter p {
+  color: black;
+  overflow: hidden; /* Ensures the content is not revealed until the animation */
+  white-space: nowrap; /* Keeps the content on a single line */
+  margin: 0 auto; /* Gives that scrolling effect as the typing happens */
+  letter-spacing: .15em; /* Adjust as needed */
+  animation: typing 2.5s steps(44) 1s 1 normal both;          
+}
+</style>
 </head>
 <body>
-  <!-- Area do jogo -->
+<div id="divintruct">
+	<p>WASD para mexer</p>
+</div>
  <canvas id="background" class="pixel-art draws" width="672" height="560"
  			style="left: 200px; top: 100px; z-index: 0; position: absolute;">
  </canvas>
@@ -21,9 +77,7 @@
 <div id="divtexto">
 	<p id="texto"></p>
 </div>
-
 <script>
-
 //************************************************************
 //															 *
 //				~Constantes~								 *
@@ -191,7 +245,7 @@ let isInFolha=false;
 
 //innit aos src
 //************************************
-setMapId(7); //Começa no 1
+setMapId(9); //Começa no 1
 //************************************
 
 //************************************************************
@@ -237,7 +291,7 @@ function setMapPassages(mapId){
 		//mapPassages array per passage = (posX,posY,width,height,connectsTO,new posX, new posY)
 		case 1:
 			mapPassages.passage1 = [tileSize*11, tileSize*0, tileSize*1, tileSize*7, 2, tileSize*1, tileSize*4];			
-			//mapPassages.interact1 = [tileSize*1,tileSize*5,tileSize*1,tileSize*1,40,0,0];
+			mapPassages.interact40 = [tileSize*1,tileSize*5,tileSize*1,tileSize*1,40,0,0];
 			break;
 		case 2:
 			mapPassages.passage1 = [tileSize*0.3,tileSize*4,tileSize*0.3,tileSize*3, 1,tileSize*11-10,tileSize*4];
@@ -249,9 +303,12 @@ function setMapPassages(mapId){
 			mapPassages.passage2 = [tileSize*3,0,tileSize*2,tileSize, 2, tileSize*3, tileSize*8];
 			mapPassages.passage3 = [tileSize*6,tileSize*9.3,tileSize*2, tileSize, 4, tileSize*6,tileSize];
 			mapPassages.passage4 = [tileSize*0,tileSize*4,tileSize*0.3, tileSize*4, 31, tileSize*11,tileSize*5];
+			mapPassages.interact41 = [tileSize*8,tileSize*4,tileSize*4,tileSize*1,41,0,0];
+			mapPassages.interact43 = [tileSize*6,tileSize*8,tileSize*2,tileSize*1,43,0,0];
 			break;
 		case 31:
 			mapPassages.passage1 = [tileSize*11,tileSize*4,tileSize*1,tileSize*4, 3, tileSize*1.3, tileSize*5];
+			mapPassages.interact42 = [tileSize*9,tileSize*4,tileSize*1,tileSize*6,42,0,0];
 			break;
 		case 4:
 			mapPassages.passage1 = [tileSize*5,tileSize*0.3,tileSize*2, tileSize, 3, tileSize*6,tileSize*8];
@@ -260,14 +317,17 @@ function setMapPassages(mapId){
 		case 5:
 			mapPassages.passage1 = [tileSize*0,tileSize*4,tileSize*0.3,tileSize*3, 4, tileSize*10,tileSize*4];
 			mapPassages.passage2 = [tileSize*11,tileSize*4,tileSize*1,tileSize*3, 6, tileSize*1, tileSize*4];
+			mapPassages.interact44 = [tileSize*2,tileSize*4,tileSize*1,tileSize*6,44,0,0];
 			break;
 		case 6:
 			mapPassages.passage1 = [tileSize*0,tileSize*4,tileSize*0.3,tileSize*2, 5, tileSize*10, tileSize*4];
 			mapPassages.passage2 = [tileSize*11, tileSize*0, tileSize*1, tileSize*3, 7, tileSize*1,tileSize*1];
+			mapPassages.interact45 = [tileSize*2,tileSize*0,tileSize*1,tileSize*10,45,0,0];
 			break;
 		case 7:
 			mapPassages.passage1 = [tileSize*0,tileSize*0,tileSize*0.3,tileSize*3, 6, tileSize*10, tileSize*1];
 			mapPassages.passage2 = [tileSize*11,tileSize*7,tileSize*1,tileSize*3, 8, tileSize*1, tileSize* 8];
+			mapPassages.interact46 = [tileSize*2,tileSize*0,tileSize*1,tileSize*10,46,0,0];
 			break;
 		case 8:
 			mapPassages.passage1 = [tileSize*0, tileSize*7, tileSize*0.3,tileSize*3, 7, tileSize*10, tileSize*7];
@@ -276,10 +336,15 @@ function setMapPassages(mapId){
 		case 9:
 			mapPassages.passage1 = [tileSize*0, tileSize*4, tileSize*0.3,tileSize*3, 8, tileSize*10, tileSize*4];
 			mapPassages.passage2 = [tileSize*5, tileSize*0, tileSize*4,tileSize*1, 10, tileSize*6.5, tileSize*8];
+			mapPassages.interact47 = [tileSize*2,tileSize*0,tileSize*1,tileSize*10,47,0,0];
 			break;
 		case 10:
-			mapPassages.interact2 = [tileSize*6, tileSize*8, tileSize*5,tileSize*2, 41, 0, 0];
+			mapPassages.passage1 = [tileSize*0, tileSize*4,tileSize*1,tileSize*2, 11, tileSize*10, tileSize*4];
+			mapPassages.interact48 = [tileSize*2, tileSize*6, tileSize*10,tileSize*5, 48, 0, 0];
 			break;
+		case 11:
+			mapPassages.interact49 = [tileSize*0, tileSize*0, tileSize*12,tileSize*10, 49, 0, 0];
+
 	}
 }
 
@@ -331,7 +396,10 @@ function setMapSrc(mapId){
 			map.src = 'SpriteSheet/map10.png';
 			fore.src = 'SpriteSheet/fore10.png';
 			break;
-
+		case 11:
+			map.src ='SpriteSheet/map11.png';
+			fore.src = 'SpriteSheet/map11.png';
+			break;
 	}
 }
 
@@ -837,16 +905,45 @@ function getInteraction(interactId){
 	//>x (20) são flags de interact (só corre 1 vez)
 	switch(interactId)
 	{
-		case 0:
-			texto.innerHTML = "Oh não, perdi meu cachorro!";
-			break;
 		case 40:
-			texto.innerHTML = "Lorem ipsum dolor sit amet. Inicial";
-			mapPassages.interact1 = [];
+			texto.innerHTML = "Oh não, perdi o meu cão, Bobby!";
+			mapPassages.interact40 = [];
 			break;
 		case 41:
-			texto.innerHTML = "No way back!";
-			mapPassages.interact2 = [];
+			texto.innerHTML = "Se calhar está na clareira à esquerda...";
+			mapPassages.interact41 = [];
+			break;	
+		case 42:
+			texto.innerHTML = "Não está aqui? Estará para trás?";
+			mapPassages.interact42 = [];
+			break;
+		case 43:
+			texto.innerHTML = "Ele deve estar mais dentro da floresta!";
+			mapPassages.interact43 = [];
+			break;
+		case 44:
+			texto.innerHTML = "Aquele nenúfar está a mexer?";
+			mapPassages.interact44 = [];
+			break;
+		case 45:
+			texto.innerHTML = "Bolas, tenho de passar por cima dele!";
+			mapPassages.interact45 = [];
+			break;
+		case 46:
+			texto.innerHTML = "Mais??";
+			mapPassages.interact46= [];
+			break;
+		case 47:
+			texto.innerHTML = "Ufa, acabaram os nenúfares.";
+			mapPassages.interact47= [];
+			break;
+		case 48:
+			texto.innerHTML = "Não consigo voltar atrás, nem ver nada!";
+			mapPassages.interact48 = [];
+			break;
+		case 49:
+			texto.innerHTML = "oh não, MORRI... obrigada eduardo T.T";
+			mapPassages.interact49 = [];
 			break;
 	}
 
