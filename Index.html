@@ -106,7 +106,7 @@ const scaledHeight = scale * height;
 const moveSpeed = 2;
 
 //ciclo com as colunas na spriteSheet
-const cycleLoop = [0, 0, 0, 0];
+const cycleLoop = [0, 1, 0, 1];
 
 //quantidade de frames por draw
 const frameLimit = 12;
@@ -115,10 +115,11 @@ const frameLimit = 12;
 
 //direções - Rows na SpriteSheet
 const directions = {
+   none: 0,
    up: 2,
-   down: 0,
-   left: 3,
-   right: 1,
+   down: 1,
+   left: 4,
+   right: 3,
 }
 
 //passagens
@@ -147,7 +148,7 @@ let debugCount=0;
 let positionX = tileSize*1+10;
 let positionY = tileSize*5-25;
 
-//linha da spriteSheet
+//coluna da spriteSheet
 let currentLoopIndex = 0;
 
 //var para gerir "fps's"
@@ -197,7 +198,7 @@ let fore = new Image();
 
 //textbox
 let text = new Image();
-text.src = 'SpriteSheet/textBoxTeste.png';
+text.src = 'SpriteSheet/textbox.png';
 
 //canvas para o que apareçe "á frente" da char
 let canvasFluff = document.getElementById('foreground');
@@ -245,7 +246,7 @@ let isInFolha=false;
 
 //innit aos src
 //************************************
-setMapId(9); //Começa no 1
+setMapId(1); //Começa no 1
 //************************************
 
 //************************************************************
@@ -261,7 +262,7 @@ function fillCanvas(map){
 
 //kickstart também
 function loadImage(){
-	img.src = 'SpriteSheet/hero1.png';
+	img.src = 'SpriteSheet/Meninaspritesheet.png';
 	//func onload corre at start, começa a animação
 	img.onload = function() {
   		window.requestAnimationFrame(step);
@@ -667,10 +668,19 @@ function step(){
 	}
 
 	//char mantém idle stance quando pára de se mexer
-	//TODO: criar loop á parte para idle animation ----------------------****
 	if(!hasMoved){
-		currentLoopIndex = 0;
-		
+		currentDirection= directions.none;
+		frameCount++;
+		//só arranca quando o counter bate no frameLimit
+		if(frameCount >= frameLimit){
+			frameCount = 0;
+			//incrementa a posição X na SpriteSheet
+			currentLoopIndex++;
+			//chegando ao fim, volta ao inicio
+			if(currentLoopIndex >= cycleLoop.length){
+				currentLoopIndex = 0;
+			}
+		}
 	}
 	} //fim do (!waitInteract)
 	
@@ -679,7 +689,7 @@ function step(){
 	
 	//desenha tudo
 	//						        	Este 0 passa a CurrentDirection (Y na SpriteSheet)
-	drawFrame(cycleLoop[currentLoopIndex], 0, positionX, positionY);
+	drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY);
 
 	//recursion para o jogo andar
 	window.requestAnimationFrame(step); 
@@ -813,8 +823,8 @@ function checkColision(deltaX, deltaY){
 	//conta estranha, mas apenas para "feel" de colisão correcta
 	let halfHeight = positionY+(scaledHeight/2)+10;
 
-	let colideX = positionX+scaledWidth-20;
-	let colideY = positionY+scaledHeight-10;
+	let colideX = positionX+scaledWidth-15;
+	let colideY = positionY+scaledHeight-15;
 
 	//check declarado fora do ciclo forEach, caso algum acuse false, não
 	//muda até checkColision voltar a ser called
@@ -829,7 +839,7 @@ function checkColision(deltaX, deltaY){
 		//atribui os valores da array a estas 4 vars
 		let [posX, posY, coliderWidth, coliderHeight] = mapBounds[key];
 		
-		if((positionX+20)+deltaX < posX+coliderWidth &&
+		if((positionX+15)+deltaX < posX+coliderWidth &&
 		   colideX+deltaX > posX &&
 		   halfHeight+deltaY < posY+coliderHeight &&
 		   colideY+deltaY > posY)
